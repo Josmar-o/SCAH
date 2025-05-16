@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Detalle de Cita - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 2rem;
+      font-size: 2rem;
+    }
+
+    .card {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .field {
+      margin-bottom: 1.5rem;
+    }
+
+    .field label {
+      font-weight: bold;
+      color: var(--azul);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .field p {
+      color: #333;
+      padding: 0.5rem 1rem;
+      background-color: var(--gris-claro);
+      border-radius: 6px;
+    }
+
+    .status {
+      display: inline-block;
+      background-color: var(--celeste);
+      color: #000;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+
+    .buttons button {
+      padding: 0.8rem 1.5rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .btn-volver {
+      background-color: var(--gris-oscuro);
+      color: white;
+    }
+
+    .btn-volver:hover {
+      background-color: #6b6462;
+    }
+
+    .btn-editar {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    .btn-editar:hover {
+      background-color: #1e7cb2;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 768px) {
+      .buttons {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .buttons button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Citas</a>
+      <a href="#">Perfil</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido -->
+  <main>
+    <h2>Detalle de la Cita Médica</h2>
+    <div class="card">
+      <div class="field">
+        <label>Nombre del Paciente:</label>
+        <p>Juan Pérez</p>
+      </div>
+
+      <div class="field">
+        <label>Nombre del Médico:</label>
+        <p>Dra. Carolina Sánchez</p>
+      </div>
+
+      <div class="field">
+        <label>Fecha y Hora:</label>
+        <p>Martes, 14 de mayo 2025 - 10:30 AM</p>
+        <span class="status">Atendida</span>
+      </div>
+
+      <div class="field">
+        <label>Especialidad:</label>
+        <p>Medicina General</p>
+      </div>
+
+      <div class="field">
+        <label>Observación Médica:</label>
+        <p>El paciente presenta síntomas leves de gripe. Se recomienda reposo de 3 días y buena hidratación.</p>
+      </div>
+
+      <div class="field">
+        <label>Receta Médica:</label>
+        <p>Paracetamol 500mg cada 8 horas por 3 días.</p>
+      </div>
+
+      <div class="field">
+        <label>Archivos Adjuntos:</label>
+        <p><a href="#">Ver receta escaneada.pdf</a></p>
+      </div>
+
+      <div class="buttons">
+        <button class="btn-volver">← Volver</button>
+        <button class="btn-editar">Editar Observación</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+
+</body>
+</html>

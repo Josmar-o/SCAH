@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Perfil Médico - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .calendar, .side-section {
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .calendar {
+      min-height: 500px;
+    }
+
+    .calendar h3,
+    .side-section h3 {
+      color: var(--azul-claro);
+      margin-bottom: 1rem;
+    }
+
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .calendar-table th,
+    .calendar-table td {
+      border: 1px solid var(--gris-claro);
+      text-align: center;
+      padding: 0.8rem;
+    }
+
+    .calendar-table th {
+      background-color: var(--celeste);
+      color: black;
+    }
+
+    .scheduled {
+      background-color: var(--azul-claro);
+      color: white;
+      border-radius: 5px;
+      padding: 0.3rem;
+    }
+
+    .not-scheduled {
+      color: var(--gris-oscuro);
+      font-style: italic;
+    }
+
+    .side-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .side-section li {
+      background-color: var(--celeste);
+      padding: 0.8rem;
+      margin-bottom: 0.7rem;
+      border-radius: 8px;
+    }
+
+    .side-section button {
+      margin-top: 0.5rem;
+      background-color: var(--azul);
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .side-section button:hover {
+      background-color: var(--azul-claro);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Calendario</a>
+      <a href="#">Citas</a>
+      <a href="#">Recetas</a>
+      <a href="#">Perfil</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main>
+    <h2>Perfil Médico</h2>
+
+    <div class="container">
+      <!-- Calendario -->
+      <section class="calendar">
+        <h3>Calendario de Citas</h3>
+        <table class="calendar-table">
+          <thead>
+            <tr>
+              <th>Lun</th>
+              <th>Mar</th>
+              <th>Mié</th>
+              <th>Jue</th>
+              <th>Vie</th>
+              <th>Sáb</th>
+              <th>Dom</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="scheduled">1</span></td>
+              <td><span class="not-scheduled">2</span></td>
+              <td><span class="scheduled">3</span></td>
+              <td><span class="scheduled">4</span></td>
+              <td><span class="not-scheduled">5</span></td>
+              <td>6</td>
+              <td>7</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td><span class="scheduled">9</span></td>
+              <td>10</td>
+              <td><span class="not-scheduled">11</span></td>
+              <td>12</td>
+              <td>13</td>
+              <td>14</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Próximas citas -->
+      <aside class="side-section">
+        <h3>Próximas Citas</h3>
+        <ul>
+          <li>
+            Paciente: Ana Gómez - 14 mayo 10:00 AM<br />
+            <button onclick="alert('Función de observaciones aún no implementada')">Hacer Observaciones</button>
+          </li>
+          <li>
+            Paciente: Luis Díaz - 15 mayo 11:30 AM<br />
+            <button onclick="alert('Función de observaciones aún no implementada')">Hacer Observaciones</button>
+          </li>
+        </ul>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+
+</body>
+</html>

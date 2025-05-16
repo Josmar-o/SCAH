@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Paciente - SCAH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f7f9fb;
+      color: #333;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .dashboard {
+      padding: 2rem 4rem;
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .main-content {
+      flex: 3;
+    }
+
+    .main-content h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+    }
+
+    .citas {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .cita {
+      background-color: white;
+      border-left: 6px solid var(--azul);
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      padding: 1.2rem 1.5rem;
+      transition: 0.2s;
+    }
+
+    .cita:hover {
+      transform: translateY(-3px);
+    }
+
+    .cita h3 {
+      font-size: 1.2rem;
+      color: var(--azul);
+      margin-bottom: 0.5rem;
+    }
+
+    .cita p {
+      margin-bottom: 0.3rem;
+      color: var(--gris-oscuro);
+      font-size: 0.95rem;
+    }
+
+    .sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    .card h2 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: var(--azul-claro);
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: var(--azul);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      nav {
+        margin-top: 1rem;
+      }
+
+      .dashboard {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+      }
+
+      .card {
+        flex: 1;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Mis Citas</a>
+      <a href="#">Agendar</a>
+      <a href="#">Perfil</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+    <!-- Contenido principal -->
+    <div class="main-content">
+      <h2>Bienvenido, Juan Pérez</h2>
+      <section class="citas">
+        <div class="cita">
+          <h3>Consulta General</h3>
+          <p><strong>Fecha:</strong> 15 de mayo de 2025</p>
+          <p><strong>Hora:</strong> 10:00 AM</p>
+          <p><strong>Médico:</strong> Dra. María González</p>
+          <p><strong>Estado:</strong> Confirmada</p>
+        </div>
+        <div class="cita">
+          <h3>Consulta General</h3>
+          <p><strong>Fecha:</strong> 25 de mayo de 2025</p>
+          <p><strong>Hora:</strong> 2:30 PM</p>
+          <p><strong>Médico:</strong> Dr. Ricardo Díaz</p>
+          <p><strong>Estado:</strong> Pendiente</p>
+        </div>
+        <div class="cita">
+            <h3>Consulta General</h3>
+            <p><strong>Fecha:</strong> 25 de mayo de 2025</p>
+            <p><strong>Hora:</strong> 2:30 PM</p>
+            <p><strong>Médico:</strong> Dr. Ricardo Díaz</p>
+            <p><strong>Estado:</strong> Pendiente</p>
+          </div>
+      </section>
+    </div>
+
+    <!-- Sidebar derecha -->
+    <div class="sidebar">
+      <div class="card">
+        <h2>Agendar Cita</h2>
+        <a href="#" class="btn">➕ Nueva Cita</a>
+      </div>
+      <div class="card">
+        <h2>Historial Médico</h2>
+        <a href="#" class="btn">📄 Ver Historial</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+</body>
+</html>

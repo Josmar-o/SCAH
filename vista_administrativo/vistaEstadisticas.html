@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Estadísticas - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .main {
+      padding: 2rem;
+    }
+
+    .main h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1.5rem;
+    }
+
+    .charts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: space-between;
+    }
+
+    .chart-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 350px !important;
+    }
+
+    @media (max-width: 768px) {
+      .charts-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Citas</a>
+      <a href="#">Usuarios</a>
+      <a href="#">Estadísticas</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <section class="main">
+    <h2>Estadísticas del Sistema</h2>
+    <div class="charts-container">
+      <!-- Gráfico de Citas por Mes -->
+      <div class="chart-card">
+        <h3>Citas Registradas por Mes</h3>
+        <canvas id="citasMesChart"></canvas>
+      </div>
+
+      <!-- Gráfico de Asistencia -->
+      <div class="chart-card">
+        <h3>Asistencia vs Inasistencia</h3>
+        <canvas id="asistenciaChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- JS para los gráficos -->
+  <script>
+    const citasMesChart = new Chart(document.getElementById('citasMesChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+        datasets: [{
+          label: 'Citas',
+          data: [120, 135, 90, 180, 210, 160],
+          backgroundColor: 'rgba(0, 79, 152, 0.7)'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    const asistenciaChart = new Chart(document.getElementById('asistenciaChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Asistieron', 'No asistieron'],
+        datasets: [{
+          data: [85, 15],
+          backgroundColor: [
+            'rgba(45, 147, 213, 0.8)',
+            'rgba(200, 199, 201, 0.8)'
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

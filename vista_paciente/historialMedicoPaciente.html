@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial Médico - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f7f9fb;
+      color: #333;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .historial {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background-color: var(--celeste);
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      color: var(--azul);
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      margin: 0.3rem 0;
+      color: #222;
+    }
+    .card ul {
+  margin-top: 0.5rem;
+  padding-left: 1.2rem;
+  list-style-type: disc;
+  color: #333;
+}
+
+.card ul li {
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}
+    
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        margin-top: 1rem;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Mis Citas</a>
+      <a href="#">Agendar</a>
+      <a href="#">Historial</a>
+      <a href="#">Perfil</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main>
+    <h2>Historial Médico -nombrePaciente-</h2>
+
+    <div class="historial">
+      <div class="card">
+        <h3>Consulta con Dr. Ricardo Díaz</h3>
+        <p><strong>Especialidad:</strong> Medicina General</p>
+        <p><strong>Fecha:</strong> 12/04/2025</p>
+        <p><strong>Observaciones:</strong> Revisión general, presión arterial alta. Recetado enalapril.</p>
+      </div>
+
+      <div class="card">
+        <h3>Consulta con Dra. María González</h3>
+        <p><strong>Especialidad:</strong> Dermatología</p>
+        <p><strong>Fecha:</strong> 05/03/2025</p>
+        <p><strong>Observaciones:</strong> Tratamiento para dermatitis. Aplicar crema dos veces al día.</p>
+      </div>
+
+      <div class="card">
+        <h3>Consulta con Dr. Juan Pérez</h3>
+        <p><strong>Especialidad:</strong> Pediatría</p>
+        <p><strong>Fecha:</strong> 20/01/2025</p>
+        <p><strong>Observaciones:</strong> Revisión de rutina. Todo en orden.</p>
+      </div>
+
+      <!-- Puedes añadir más registros aquí -->
+      <div class="card">
+        <h3>Consulta con Dr. Ricardo Díaz</h3>
+        <p><strong>Especialidad:</strong> Medicina General</p>
+        <p><strong>Fecha:</strong> 12/04/2025</p>
+        <p><strong>Observaciones:</strong> Revisión general, presión arterial alta. Recetado enalapril.</p>
+        <p><strong>Recetas:</strong></p>
+        <ul>
+          <li>Enalapril 10mg - Tomar 1 tableta cada 12 horas</li>
+          <li>Control de presión semanal</li>
+        </ul>
+      </div>
+      
+      <div class="card">
+        <h3>Consulta con Dra. María González</h3>
+        <p><strong>Especialidad:</strong> Dermatología</p>
+        <p><strong>Fecha:</strong> 05/03/2025</p>
+        <p><strong>Observaciones:</strong> Tratamiento para dermatitis. Aplicar crema dos veces al día.</p>
+        <p><strong>Recetas:</strong></p>
+        <ul>
+          <li>Crema tópica antiinflamatoria - Aplicar cada 12 horas</li>
+        </ul>
+      </div>
+      
+      <div class="card">
+        <h3>Consulta con Dr. Juan Pérez</h3>
+        <p><strong>Especialidad:</strong> Pediatría</p>
+        <p><strong>Fecha:</strong> 20/01/2025</p>
+        <p><strong>Observaciones:</strong> Revisión de rutina. Todo en orden.</p>
+        <!-- No hay recetas para esta consulta -->
+      </div>
+      
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perfil del Paciente - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f1f4f8;
+      color: #333;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .perfil-info {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .perfil-info label {
+      font-weight: bold;
+      color: var(--azul);
+    }
+
+    .perfil-info p {
+      background-color: var(--celeste);
+      padding: 0.7rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      color: #000;
+    }
+
+    .acciones {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .acciones button {
+      background-color: var(--azul-claro);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .acciones button:hover {
+      background-color: var(--azul);
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 768px) {
+      .perfil-info {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Mis Citas</a>
+      <a href="#">Agendar</a>
+      <a href="#">Historial</a>
+      <a href="#">Perfil</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main>
+    <h2>Mi Perfil</h2>
+
+    <div class="perfil-info">
+      <div>
+        <label>Nombre completo:</label>
+        <p>Juan Pérez</p>
+
+        <label>Correo electrónico:</label>
+        <p>juanperez@example.com</p>
+
+        <label>Número de Identificación:</label>
+        <p>8-1234-5678</p>
+      </div>
+
+      <div>
+        <label>Teléfono:</label>
+        <p>+507 6123-4567</p>
+
+        <label>Dirección:</label>
+        <p>Ciudad de Panamá, San Francisco</p>
+
+        <label>Fecha de Nacimiento:</label>
+        <p>12 de febrero de 1985</p>
+      </div>
+    </div>
+
+    <div class="acciones">
+      <button onclick="alert('Función de edición próximamente')">Editar Información</button>
+    </div>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+
+</body>
+</html>

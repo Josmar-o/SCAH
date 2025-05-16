@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Usuarios Registrados - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f7f9fb;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      padding: 2rem;
+      gap: 2rem;
+      justify-content: space-between;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .sidebar h3 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .sidebar label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: var(--gris-oscuro);
+    }
+
+    .sidebar select, .sidebar input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .content {
+      flex: 1;
+    }
+
+    .content h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    thead {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gris-claro);
+    }
+
+    tr:hover {
+      background-color: var(--celeste);
+      color: black;
+    }
+
+    .actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .actions button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      background-color: var(--azul-claro);
+      color: white;
+      font-weight: bold;
+    }
+
+    .actions button:hover {
+      background-color: var(--azul);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <nav>
+      <a href="#">Inicio</a>
+      <a href="#">Citas</a>
+      <a href="#">Usuarios</a>
+      <a href="#">Estadísticas</a>
+      <a href="#">Cerrar Sesión</a>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <div class="container">
+    <!-- Sidebar filtros -->
+    <aside class="sidebar">
+      <h3>Filtros</h3>
+      <label for="tipo-usuario">Tipo de Usuario</label>
+      <select id="tipo-usuario">
+        <option>Todos</option>
+        <option>Paciente</option>
+        <option>Médico</option>
+      </select>
+
+      <label for="estado">Estado</label>
+      <select id="estado">
+        <option>Activo</option>
+        <option>Inactivo</option>
+      </select>
+
+      <label for="buscar">Buscar</label>
+      <input type="text" id="buscar" placeholder="Buscar por nombre o cédula">
+    </aside>
+
+    <!-- Tabla de usuarios -->
+    <section class="content">
+      <h2>Usuarios Registrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Cédula</th>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>12345678</td>
+            <td>Juan Pérez</td>
+            <td>Paciente</td>
+            <td><span class="status aprobada">Activo</span></td>
+            <td class="actions">
+              <button>Editar</button>
+              <button>Eliminar</button>
+            </td>
+          </tr>
+          <tr>
+            <td>87654321</td>
+            <td>Ana Ruiz</td>
+            <td>Médico</td>
+            <td><span class="status aprobada">Activo</span></td>
+            <td class="actions">
+              <button>Editar</button>
+              <button>Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+</body>
+</html>

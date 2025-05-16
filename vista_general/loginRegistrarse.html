@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login / Registro - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Questrial', sans-serif;
+      background: #f1f5f9;
+      color: #333;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    .left-panel {
+      flex: 1;
+      background-color: #004f98;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem;
+    }
+
+    .left-panel h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .left-panel p {
+      font-size: 1.1rem;
+      text-align: center;
+      line-height: 1.6;
+      max-width: 400px;
+    }
+
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      background: white;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 400px;
+      background: #f9fafb;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #c8c7c9;
+    }
+
+    .form-box h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #004f98;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .form-box label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
+
+    .form-box input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #c8c7c9;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .form-box button {
+      width: 100%;
+      background-color: #2d93d5;
+      color: white;
+      padding: 0.8rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .form-box button:hover {
+      background-color: #004f98;
+    }
+
+    .toggle-link {
+      margin-top: 1rem;
+      text-align: center;
+      color: #2d93d5;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .toggle-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+      .left-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <h1>SCAH</h1>
+      <p>Sistema de Citas y Atención Hospitalaria. Accede a tus citas, consulta tu historial y mantén el control de tu salud.</p>
+    </div>
+
+    <div class="right-panel">
+      <div class="form-box" id="formLogin">
+        <h2>Iniciar Sesión</h2>
+        <label for="email">Correo electrónico</label>
+        <input type="email" id="email" placeholder="ejemplo@correo.com" />
+
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="********" />
+
+        <button>Ingresar</button>
+
+        <div class="toggle-link" onclick="toggleForm()">¿No tienes cuenta? Regístrate</div>
+      </div>
+
+      <div class="form-box" id="formRegister" style="display: none;">
+        <h2>Registro de Paciente</h2>
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" placeholder="Juan Pérez" />
+
+        <label for="emailRegister">Correo electrónico</label>
+        <input type="email" id="emailRegister" placeholder="ejemplo@correo.com" />
+
+        <label for="cedula">Número de identificación</label>
+        <input type="text" id="cedula" placeholder="123456789" />
+
+        <label for="passwordRegister">Contraseña</label>
+        <input type="password" id="passwordRegister" placeholder="********" />
+
+        <button>Registrarse</button>
+
+        <div class="toggle-link" onclick="toggleForm()">¿Ya tienes cuenta? Inicia sesión</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleForm() {
+      const login = document.getElementById("formLogin");
+      const register = document.getElementById("formRegister");
+      if (login.style.display === "none") {
+        login.style.display = "block";
+        register.style.display = "none";
+      } else {
+        login.style.display = "none";
+        register.style.display = "block";
+      }
+    }
+  </script>
+</body>
+</html>
