@@ -25,7 +25,7 @@ connection.connect((err) => {
     console.log('MySQL Connected...');
 });
 
-// Routes
+// Rutas 
 app.use('/api/auth', authRoutes(connection));
 
 app.get('/', (req, res) => {
@@ -34,4 +34,8 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
     console.log(`App running at http://localhost:${port}`);
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(__dirname + '/views/vista_general/loginRegistrarse.html');
 });

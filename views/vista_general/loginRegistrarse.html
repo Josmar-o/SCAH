@@ -185,5 +185,57 @@
       }
     }
   </script>
+
+<script>
+  async function handleLogin() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo: email, contrasena: password }),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert('Login exitoso');
+      // Aquí puedes redirigir al usuario a la página principal o dashboard
+    } else {
+      alert(data.message);
+    }
+  }
+
+  async function handleRegister() {
+    const nombre = document.getElementById('nombre').value;
+    const email = document.getElementById('emailRegister').value;
+    const identificacion = document.getElementById('cedula').value;
+    const password = document.getElementById('passwordRegister').value;
+
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nombre,
+        correo: email,
+        contrasena: password,
+        identificacion,
+        rol: 'paciente', // Asumiendo que el rol por defecto es paciente
+      }),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert('Registro exitoso');
+     //Redirigitar o manejar el éxito del registro
+      
+    } else {
+      alert(data.message);
+    }
+  }
+
+  document.querySelector('#formLogin button').addEventListener('click', handleLogin);
+  document.querySelector('#formRegister button').addEventListener('click', handleRegister);
+</script>
 </body>
 </html>
