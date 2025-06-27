@@ -4,27 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login / Registro - SCAH</title>
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Questrial', sans-serif;
       background: #f1f5f9;
       color: #333;
     }
-
-    .container {
+    .spinner {
       display: flex;
-      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      margin: 10px auto;
+      width: 100%;
+      text-align: center;
     }
-
+    .input-error {
+      border: 2px solid #d32f2f !important;
+    }
+    
+    .container { display: flex; height: 100vh; }
     .left-panel {
       flex: 1;
       background-color: #004f98;
@@ -35,20 +36,17 @@
       align-items: center;
       padding: 3rem;
     }
-
     .left-panel h1 {
       font-family: 'Libre Baskerville', serif;
       font-size: 2.5rem;
       margin-bottom: 1rem;
     }
-
     .left-panel p {
       font-size: 1.1rem;
       text-align: center;
       line-height: 1.6;
       max-width: 400px;
     }
-
     .right-panel {
       flex: 1;
       display: flex;
@@ -58,7 +56,6 @@
       padding: 2rem;
       background: white;
     }
-
     .form-box {
       width: 100%;
       max-width: 400px;
@@ -67,22 +64,29 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       border: 1px solid #c8c7c9;
-    }
+      transition: box-shadow 0.3s ease;
 
+      display: flex;
+      flex-direction: column;
+
+      /* 🔒 Lo importante para evitar desbordes */
+      overflow-x: hidden;
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    
     .form-box h2 {
       text-align: center;
       margin-bottom: 1.5rem;
       color: #004f98;
       font-family: 'Libre Baskerville', serif;
     }
-
     .form-box label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: bold;
     }
-
-    .form-box input {
+    .form-box input, .form-box textarea {
       width: 100%;
       padding: 0.75rem;
       margin-bottom: 1rem;
@@ -90,7 +94,6 @@
       border-radius: 6px;
       font-size: 1rem;
     }
-
     .form-box button {
       width: 100%;
       background-color: #2d93d5;
@@ -102,11 +105,15 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
-    .form-box button:hover {
-      background-color: #004f98;
+    textarea {
+      width: 100%;
+      max-width: 100%;
+      resize: vertical;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
+    .form-box button:hover { background-color: #004f98; }
     .toggle-link {
       margin-top: 1rem;
       text-align: center;
@@ -114,128 +121,351 @@
       cursor: pointer;
       font-size: 0.95rem;
     }
-
-    .toggle-link:hover {
-      text-decoration: underline;
-    }
-
+    
+    .toggle-link:hover { text-decoration: underline; }
     @media (max-width: 900px) {
-      .container {
-        flex-direction: column;
+      .container { flex-direction: column; }
+      .left-panel { display: none; }
+      .form-box { max-width: 100%; padding: 1.5rem; overflow: visible; max-height: none;}
+    }
+    @media (max-width: 600px) {
+      .form-box input,
+      .form-box textarea {
+        font-size: 0.95rem;
+        padding: 0.65rem;
       }
-      .left-panel {
-        display: none;
+      .form-box h2 { font-size: 1.4rem; }
+      .form-box button {
+        font-size: 1rem;
+        padding: 0.7rem;
       }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="left-panel">
       <h1>SCAH</h1>
       <p>Sistema de Citas y Atención Hospitalaria. Accede a tus citas, consulta tu historial y mantén el control de tu salud.</p>
     </div>
-
     <div class="right-panel">
       <div class="form-box" id="formLogin">
         <h2>Iniciar Sesión</h2>
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" placeholder="ejemplo@correo.com" />
-
+        <label for="email">Correo electrónico / cedula</label>
+        <input type="email" id="email" placeholder="ejemplo@correo.com / 8-8888-888" />
         <label for="password">Contraseña</label>
         <input type="password" id="password" placeholder="********" />
-
         <button>Ingresar</button>
-
+        <div id="mensajeLogin" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿No tienes cuenta? Regístrate</div>
+        <div class="toggle-link" onclick="mostrarRecuperar()">¿Olvidaste tu contraseña?</div>
       </div>
 
       <div class="form-box" id="formRegister" style="display: none;">
         <h2>Registro de Paciente</h2>
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" placeholder="Juan Pérez" />
-
+        <label for="cedula">Cédula</label>
+        <input type="text" id="cedula" required placeholder="8-8888-888"/>
+        <label for="primer_nombre">Primer Nombre</label>
+        <input type="text" id="primer_nombre" required />
+        <label for="segundo_nombre">Segundo Nombre</label>
+        <input type="text" id="segundo_nombre" />
+        <label for="primer_apellido">Primer Apellido</label>
+        <input type="text" id="primer_apellido" required />
+        <label for="segundo_apellido">Segundo Apellido</label>
+        <input type="text" id="segundo_apellido" />
+        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+        <input type="date" id="fecha_nacimiento" required />
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" required placeholder="12345678"/>
         <label for="emailRegister">Correo electrónico</label>
-        <input type="email" id="emailRegister" placeholder="ejemplo@correo.com" />
-
-        <label for="cedula">Número de identificación</label>
-        <input type="text" id="cedula" placeholder="123456789" />
-
+        <input type="email" id="emailRegister" required placeholder="usuario@correo.com"/>
+        <label for="direccion">Dirección</label>
+        <textarea id="direccion" rows="3"></textarea>
         <label for="passwordRegister">Contraseña</label>
-        <input type="password" id="passwordRegister" placeholder="********" />
-
+        <input type="password" id="passwordRegister" required />
         <button>Registrarse</button>
-
+        <div id="mensajeRegister" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿Ya tienes cuenta? Inicia sesión</div>
+      </div>
+
+      <div class="form-box" id="formRecuperar" style="display: none;">
+        <h2>Recuperar Contraseña</h2>
+        <label for="emailRecuperar">Correo electrónico</label>
+        <input type="email" id="emailRecuperar" placeholder="usuario@correo.com" required />
+        <button id="btnRecuperar">Enviar enlace</button>
+        <div id="spinner" class="spinner" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" stroke="#2d93d5" stroke-width="4" fill="none" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 20 20" to="360 20 20"/>
+            </circle>
+          </svg>
+        </div>
+        <div id="mensajeRecuperar" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
+        <div class="toggle-link" onclick="mostrarLogin()">Volver a iniciar sesión</div>
       </div>
     </div>
   </div>
 
   <script>
+    const telefonoInput = document.getElementById('telefono');
+    //mascara de teléfono
+    telefonoInput.addEventListener('input', function (e) {
+      let value = this.value.replace(/\D/g, '');
+      value = value.slice(0, 8);
+      if (value.length > 4) {
+        value = value.slice(0, 4) + '-' + value.slice(4);
+      }
+      this.value = value;
+    });
+
+    //mascara de cédula
+    const cedulaInput = document.getElementById('cedula');
+    cedulaInput.addEventListener('input', function () {
+      let value = this.value.replace(/\D/g, '');
+
+      // Máximo 9 dígitos
+      value = value.slice(0, 9);
+
+      // Si el primer dígito es 1-9 y el segundo no es 0, es una cédula de una cifra
+      if (value.length > 0 && value[0] !== '0' && (value.length === 1 || value[1] !== '0')) {
+        if (value.length > 1) {
+          value = value.slice(0, 1) + '-' + value.slice(1);
+        }
+        if (value.length > 6) {
+          value = value.slice(0, 6) + '-' + value.slice(6);
+        }
+      } else {
+        // Si empieza con 0 o dos dígitos, el guion va después de los dos primeros
+        if (value.length > 2) {
+          value = value.slice(0, 2) + '-' + value.slice(2);
+        }
+        if (value.length > 7) {
+          value = value.slice(0, 7) + '-' + value.slice(7);
+        }
+      }
+
+      this.value = value;
+    });
+
+    // Evento para el botón de recuperar contraseña
+    function mostrarRecuperar() {
+    document.getElementById('formLogin').style.display = 'none';
+    document.getElementById('formRegister').style.display = 'none';
+    document.getElementById('formRecuperar').style.display = 'block';
+  }
+
+  // Evento para mostrar el formulario de login
+  function mostrarLogin() {
+    document.getElementById('formLogin').style.display = 'block';
+    document.getElementById('formRegister').style.display = 'none';
+    document.getElementById('formRecuperar').style.display = 'none';
+  }
+
     function toggleForm() {
       const login = document.getElementById("formLogin");
       const register = document.getElementById("formRegister");
-      if (login.style.display === "none") {
-        login.style.display = "block";
-        register.style.display = "none";
-      } else {
-        login.style.display = "none";
-        register.style.display = "block";
+      login.style.display = login.style.display === "none" ? "block" : "none";
+      register.style.display = register.style.display === "none" ? "block" : "none";
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const mensajeDiv = document.getElementById('mensajeLogin');
+      mensajeDiv.textContent = ''; // Limpiar mensaje anterior
+
+      // Validación de campos
+      if (!email || !password) {
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'Por favor, completa todos los campos.';
+        return;
+        }
+
+
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, contrasena: password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        mensajeDiv.style.color = '#388e3c';
+        mensajeDiv.textContent = 'Login exitoso';
+        sessionStorage.setItem('token', 'usuario_autenticado');
+        // Guardar el rol en localStorage si lo necesitas
+        if (data.user && data.user.rol) {
+          localStorage.setItem('rol', data.user.rol);
+          if (data.user.rol === 'paciente') {
+            setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente3.html'); }, 2000);
+            
+          } if (data.user.rol === 'administrador') {
+            // Redirige a otra página según el rol debo de especificar cual
+            setTimeout(() => { window.location.replace(''); }, 2000);
+          }
+          } else {
+            // Si no hay rol, redirige por defecto
+            setTimeout(() => { window.location.replace('home.html'); }, 2000);
+          }
+        } else {
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = data.message || 'Error al iniciar sesión';
       }
     }
-  </script>
 
-<script>
-  async function handleLogin() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    async function handleRegister() {
+      // Obtén las referencias a los inputs
+    const cedulaInput = document.getElementById('cedula');
+    const primerNombreInput = document.getElementById('primer_nombre');
+    const segundoNombreInput = document.getElementById('segundo_nombre');
+    const primerApellidoInput = document.getElementById('primer_apellido');
+    const segundoApellidoInput = document.getElementById('segundo_apellido');
+    const fechaNacimientoInput = document.getElementById('fecha_nacimiento');
+    const telefonoInput = document.getElementById('telefono');
+    const correoInput = document.getElementById('emailRegister');
+    const direccionInput = document.getElementById('direccion');
+    const contrasenaInput = document.getElementById('passwordRegister');
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ correo: email, contrasena: password }),
-    });
+    // Obtén los valores
+    const cedula = cedulaInput.value;
+    const primer_nombre = primerNombreInput.value;
+    const segundo_nombre = segundoNombreInput.value;
+    const primer_apellido = primerApellidoInput.value;
+    const segundo_apellido = segundoApellidoInput.value;
+    const fecha_nacimiento = fechaNacimientoInput.value;
+    const telefono = telefonoInput.value;
+    const correo = correoInput.value;
+    const direccion = direccionInput.value;
+    const contrasena = contrasenaInput.value;
 
-    const data = await response.json();
-    if (response.ok) {
-      alert('Login exitoso');
-      // Aquí puedes redirigir al usuario a la página principal o dashboard
-    } else {
-      alert(data.message);
-    }
-  }
+      const mensajeDiv = document.getElementById('mensajeRegister');
+      mensajeDiv.textContent = ''; // Limpiar mensaje anterior
 
-  async function handleRegister() {
-    const nombre = document.getElementById('nombre').value;
-    const email = document.getElementById('emailRegister').value;
-    const identificacion = document.getElementById('cedula').value;
-    const password = document.getElementById('passwordRegister').value;
+       // Quitar errores previos
+      cedulaInput.classList.remove('input-error');
+      primerNombreInput.classList.remove('input-error');
+      primerApellidoInput.classList.remove('input-error');
+      fechaNacimientoInput.classList.remove('input-error');
+      correoInput.classList.remove('input-error');
+      contrasenaInput.classList.remove('input-error');
 
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nombre,
-        correo: email,
-        contrasena: password,
-        identificacion,
-        rol: 'paciente', // Asumiendo que el rol por defecto es paciente
-      }),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      alert('Registro exitoso');
-     //Redirigitar o manejar el éxito del registro
+      // Validación básica
+      let hasError = false;
+      if (!cedula) { cedulaInput.classList.add('input-error'); hasError = true; }
+      if (!primer_nombre) { primerNombreInput.classList.add('input-error'); hasError = true; }
+      if (!primer_apellido) { primerApellidoInput.classList.add('input-error'); hasError = true; }
+      if (!fecha_nacimiento) { fechaNacimientoInput.classList.add('input-error'); hasError = true; }
+      if (!correo) { correoInput.classList.add('input-error'); hasError = true; }
+      if (!contrasena) { contrasenaInput.classList.add('input-error'); hasError = true; }
+      if (!telefono) { telefonoInput.classList.add('input-error'); hasError = true; }
+      // Si hay algún error, mostrar mensaje y detener el registro
+      if (hasError) {
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'Por favor, completa todos los campos obligatorios.';
+        return;
+      }
+      // Validación de cédula (formato panameño: 1-2345-678 o 8-8888-888)
+      if (!/^\d{1,2}-\d{3,4}-\d{3,4}$/.test(cedula)) {
+        cedulaInput.classList.add('input-error');
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'La cédula debe tener el formato correcto (8-8888-888).';
+        return;
+      }
+       // Validación de email simple
+      if (!/\S+@\S+\.\S+/.test(correo)) {
+        correoInput.classList.add('input-error');
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'Correo electrónico no válido.';
+        return;
+      }
+      // Validación de longitud de contraseña
+      if (contrasena.length < 6) {
+        contrasenaInput.classList.add('input-error');
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+        return;
+      }
+      // Validación de teléfono (solo números y mínimo 8 dígitos)
+      if (!/^\d{9,}$/.test(telefono)) {
+        telefonoInput.classList.add('input-error');
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'El teléfono debe tener al menos 8 dígitos y solo números.';
+        return;
+      }
       
-    } else {
-      alert(data.message);
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cedula, primer_nombre, segundo_nombre, primer_apellido,
+          segundo_apellido, fecha_nacimiento, telefono, correo,
+          direccion, contrasena
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        mensajeDiv.style.color = '#388e3c';
+        mensajeDiv.textContent = 'Registro exitoso';
+        // Mostrar formulario de login y ocultar el de registro
+        document.getElementById('formRegister').style.display = 'none';
+        document.getElementById('formLogin').style.display = 'block';
+        setTimeout(() => location.reload(), 1000);// Recarga la página después de 1 segundo
+      } else {
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = data.message || 'Error en el registro';
+      }
     }
-  }
 
-  document.querySelector('#formLogin button').addEventListener('click', handleLogin);
-  document.querySelector('#formRegister button').addEventListener('click', handleRegister);
-</script>
+    async function handleRecuperar(e) {
+      e.preventDefault();
+      const email = document.getElementById('emailRecuperar').value;
+      const mensajeDiv = document.getElementById('mensajeRecuperar');
+      const spinner = document.getElementById('spinner');
+      const btnRecuperar = document.getElementById('btnRecuperar');
+      mensajeDiv.textContent = '';
+      mensajeDiv.style.color = '#d32f2f';
+
+      if (!email) {
+        mensajeDiv.textContent = 'Por favor, ingresa tu correo.';
+        return;
+      }
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        mensajeDiv.textContent = 'Correo electrónico no válido.';
+        return;
+      }
+
+      spinner.style.display = 'block';
+      btnRecuperar.disabled = true;
+      const originalText = btnRecuperar.textContent;
+      btnRecuperar.textContent = 'Enviando...';
+
+      try {
+        const response = await fetch('/api/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: email }),
+        });
+        const data = await response.json();
+        spinner.style.display = 'none'; // Ocultar spinner
+        btnRecuperar.disabled = false;
+        btnRecuperar.textContent = originalText;
+
+        if (response.ok) {
+          mensajeDiv.style.color = '#388e3c';
+          mensajeDiv.textContent = 'Si el correo existe, se ha enviado un enlace para restablecer la contraseña';
+        } else {
+          mensajeDiv.textContent = data.message || 'Error al enviar el correo.';
+        }
+      } catch (error) {
+        spinner.style.display = 'none';
+        btnRecuperar.disabled = false;
+        btnRecuperar.textContent = originalText;
+        mensajeDiv.textContent = 'Error de conexión';
+      }
+}
+
+    document.querySelector('#formLogin button').addEventListener('click', handleLogin);
+    document.querySelector('#formRegister button').addEventListener('click', handleRegister);
+    document.getElementById('btnRecuperar').addEventListener('click', handleRecuperar);
+  </script>
 </body>
 </html>

@@ -1,3 +1,5 @@
+//para ejecutar colocar en la terminal npx nodemon app.js
+
 const express = require('express');
 const mysql2 = require('mysql2');
 const app = express();
@@ -14,7 +16,7 @@ const connection = mysql2.createConnection({
     host: 'localhost',
     user: 'root',
     database: 'scah_db',
-    password: 'jaja1920'
+    password: 'root'
 });
 
 connection.connect((err) => {
@@ -39,3 +41,4 @@ app.listen(port, () => {
 app.get('/login', (req, res) => {
     res.sendFile(__dirname + '/views/vista_general/loginRegistrarse.html');
 });
+

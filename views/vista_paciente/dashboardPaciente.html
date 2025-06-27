@@ -176,11 +176,12 @@
   <header>
     <h1>SCAH</h1>
     <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Mis Citas</a>
-      <a href="#">Agendar</a>
-      <a href="#">Perfil</a>
-      <a href="#">Cerrar Sesión</a>
+      <a href="../vista_general/home.html">Inicio</a>
+      <a href="formularioCita.html">Agendar</a>
+      <a href="vistaReprogramacion.html">Reprogramar Cita</a>
+      <a href="historialMedicoPaciente.html">Historial</a>
+      <a href="vistaPerfilPaciente.html">Perfil</a>
+      <a href="#" id="cerrarSesion">Cerrar Sesión</a>
     </nav>
   </header>
 
@@ -217,11 +218,11 @@
     <div class="sidebar">
       <div class="card">
         <h2>Agendar Cita</h2>
-        <a href="#" class="btn">➕ Nueva Cita</a>
+        <a href="formularioCita.html" class="btn">➕ Nueva Cita</a>
       </div>
       <div class="card">
         <h2>Historial Médico</h2>
-        <a href="#" class="btn">📄 Ver Historial</a>
+        <a href="historialMedicoPaciente.html" class="btn">📄 Ver Historial</a>
       </div>
     </div>
   </main>
@@ -229,5 +230,18 @@
   <footer>
     Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
   </footer>
+  <script>
+    if (!sessionStorage.getItem('token')) {
+      // Si no hay token, redirige al login
+      window.location.href = '../vista_general/loginRegistrarse.html';
+    }
+
+    // Cerrar sesión: elimina el token y redirige al login
+    document.getElementById('cerrarSesion').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      window.location.replace('../vista_general/loginRegistrarse.html'); // Reemplaza la página actual en el historial
+    });
+  </script>
 </body>
 </html>
