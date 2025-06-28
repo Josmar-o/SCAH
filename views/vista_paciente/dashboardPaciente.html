@@ -188,7 +188,7 @@
   <main class="dashboard">
     <!-- Contenido principal -->
     <div class="main-content">
-      <h2>Bienvenido, Juan Pérez</h2>
+      <h2>Bienvenido</h2>
       <section class="citas">
         <div class="cita">
           <h3>Consulta General</h3>
@@ -236,10 +236,28 @@
       window.location.href = '../vista_general/loginRegistrarse.html';
     }
 
+    // Obtener correo del usuario
+    const correo = sessionStorage.getItem('correo');
+    if (correo) {
+      fetch('/api/auth/datos-usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.primer_nombre && data.primer_apellido) {
+          document.querySelector('.main-content h2').textContent =
+            `Bienvenido, ${data.primer_nombre} ${data.primer_apellido}`;
+        }
+      });
+    }
+
     // Cerrar sesión: elimina el token y redirige al login
     document.getElementById('cerrarSesion').addEventListener('click', function(e) {
       e.preventDefault();
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('correo');
       window.location.replace('../vista_general/loginRegistrarse.html'); // Reemplaza la página actual en el historial
     });
   </script>

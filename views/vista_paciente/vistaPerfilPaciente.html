@@ -188,7 +188,7 @@
     // Cerrar sesión: elimina el token y redirige al login
     document.getElementById('cerrarSesion').addEventListener('click', function(e) {
       e.preventDefault();
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       window.location.replace('../vista_general/loginRegistrarse.html'); // Reemplaza la página actual en el historial
     });
   </script>

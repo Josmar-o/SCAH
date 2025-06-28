@@ -294,9 +294,10 @@
         sessionStorage.setItem('token', 'usuario_autenticado');
         // Guardar el rol en localStorage si lo necesitas
         if (data.user && data.user.rol) {
-          localStorage.setItem('rol', data.user.rol);
+          sessionStorage.setItem('rol', data.user.rol);
+          sessionStorage.setItem('correo', email);
           if (data.user.rol === 'paciente') {
-            setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente3.html'); }, 2000);
+            setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente.html'); }, 2000);
             
           } if (data.user.rol === 'administrador') {
             // Redirige a otra página según el rol debo de especificar cual
@@ -396,7 +397,7 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cedula, primer_nombre, segundo_nombre, primer_apellido,
+          cedula, primer_nombre, primer_apellido, primer_apellido,
           segundo_apellido, fecha_nacimiento, telefono, correo,
           direccion, contrasena
         }),

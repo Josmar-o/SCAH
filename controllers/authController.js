@@ -41,7 +41,7 @@ exports.register = (req, res, connection) => {
 
     const insertarUsuario = `
         INSERT INTO usuarios (
-            cedula,primer_nombre, segundo_nombre, correo, contrasena
+            cedula,primer_nombre,primer_apellido, correo, contrasena
         ) VALUES (?, ?, ?, ?, ?)
     `;
 
@@ -187,4 +187,18 @@ connection.query(
     return res.json({ message: 'Token válido' });
     }
 );
+};
+
+// Función para obtener los datos del usuario
+exports.getDatosUsuario = (req, res, connection) => {
+    const { correo } = req.body;
+    connection.query(
+        'SELECT primer_nombre, primer_apellido FROM usuarios WHERE correo = ?',
+        [correo],
+        (err, results) => {
+            if (err) return res.status(500).json({ message: 'Error en el servidor.' });
+            if (results.length === 0) return res.status(404).json({ message: 'Usuario no encontrado.' });
+            return res.json(results[0]);
+        }
+    );
 };
