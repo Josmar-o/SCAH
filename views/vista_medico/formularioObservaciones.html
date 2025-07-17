@@ -8,6 +8,11 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
 
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('medico');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -90,6 +95,7 @@
       border: 1px solid var(--gris-claro);
       border-radius: 8px;
       font-size: 1rem;
+      font-family: 'Questrial', sans-serif;
       background-color: #f9fcff;
     }
 
@@ -134,13 +140,7 @@
   <!-- Navbar -->
   <header>
     <h1>SCAH</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Agenda</a>
-      <a href="#">Recientes</a>
-      <a href="#">Perfil</a>
-      <a href="#">Cerrar Sesión</a>
-    </nav>
+    <div id="navbar-container"></div>
   </header>
 
   <!-- Formulario -->
@@ -184,7 +184,12 @@
       </div>
 
       <!-- Observaciones -->
-      <div class="section-title">Observaciones del Médico</div>
+      <div class="section-title">Evaluación Médica</div>
+
+      <div class="form-group">
+        <label>Diagnóstico:</label>
+        <textarea placeholder="Ingrese el diagnóstico médico..."></textarea>
+      </div>
 
       <div class="form-group">
         <label>Observaciones:</label>
@@ -192,10 +197,10 @@
       </div>
 
       <!-- Archivos adjuntos -->
-      <div class="form-group">
+      <!-- <div class="form-group">
         <label>Archivos (opcional):</label>
         <input type="file" multiple />
-      </div>
+      </div> -->
 
       <!-- Receta médica -->
       <div class="section-title">Receta Médica</div>
@@ -212,6 +217,83 @@
   <footer>
     Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
   </footer>
+<!-- ...existing code... -->
+<script>
+function getQueryParam(name) {
+  const url = new URL(window.location.href);
+  return url.searchParams.get(name);
+}
 
+async function cargarDatosCita() {
+  const id_cita = getQueryParam('id_cita');
+  if (!id_cita) return;
+
+  const res = await fetch('/api/medico/detalle-cita', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id_cita })
+  });
+  if (!res.ok) return;
+  const cita = await res.json();
+
+  document.querySelector('input[readonly][value="Juan Pérez"]').value = cita.primer_nombre + ' ' + cita.primer_apellido;
+  document.querySelector('input[readonly][value="8-123-4567"]').value = cita.cedula_paciente;
+  document.querySelector('input[readonly][value="13/05/2025 - 10:00 AM"]').value =
+    new Date(cita.fecha_cita).toLocaleDateString('es-PA', { day: '2-digit', month: 'short', year: 'numeric' }) +
+    ' - ' + cita.hora_cita.slice(0,5);
+  document.querySelector('input[readonly][value="Medicina General"]').value = cita.especialidad;
+}
+
+document.addEventListener('DOMContentLoaded', cargarDatosCita);
+
+// Guardar observación
+document.querySelector('form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const id_cita = getQueryParam('id_cita');
+  const asistencia = document.querySelector('select').value;
+  const diagnostico = document.querySelectorAll('textarea')[0].value; // Primer textarea (diagnóstico)
+  const observacion = document.querySelectorAll('textarea')[1].value;  // Segundo textarea (observaciones)
+  const prescripcion = document.querySelectorAll('textarea')[2].value; // Tercer textarea (medicamentos)
+
+  const res = await fetch('/api/medico/guardar-observacion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id_cita, asistencia, diagnostico, observacion, prescripcion })
+  });
+  if (res.ok) {
+    alert('Observación guardada correctamente.');
+    window.location.href = 'vistaMedico.html';
+  } else {
+    alert('Error al guardar la observación.');
+  }
+});
+</script>
+
+
+  <script type="module">
+    // Crear navbar específico para médicos
+    async function cargarNavbarMedico() {
+      const contenedor = document.getElementById('navbar-container');
+      if (!contenedor) return;
+      
+      contenedor.innerHTML = `
+        <nav>
+          <a href="vistaMedico.html">Mi Calendario</a>
+          <a href="#" id="cerrarSesion">Cerrar Sesión</a>
+        </nav>
+      `;
+      
+      // Configurar event listener para cerrar sesión
+      const cerrarSesionBtn = document.getElementById('cerrarSesion');
+      if (cerrarSesionBtn) {
+        cerrarSesionBtn.addEventListener('click', cerrarSesion);
+      }
+    }
+    
+    // Cargar navbar cuando la página esté lista
+    cargarNavbarMedico().then(() => {
+      console.log('Navbar médico cargado');
+    });
+  </script>
 </body>
 </html>

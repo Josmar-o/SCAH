@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Paciente - SCAH</title>
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
+
+  <!-- Script de verificación de acceso -->
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    // Verificar que solo los pacientes puedan acceder a esta vista
+    initVerificacionAcceso('paciente');
+  </script>
+
   <style>
     :root {
       --azul: #004f98;
@@ -24,6 +32,7 @@
       font-family: 'Questrial', sans-serif;
       background-color: #f7f9fb;
       color: #333;
+      padding-top: 80px; /* Añade espacio arriba para compensar el header fijo */
     }
 
     header {
@@ -33,6 +42,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed; /* Hace que el header se quede fijo */
+      top: 0; /* Lo posiciona en la parte superior */
+      left: 0; /* Lo posiciona desde el lado izquierdo */
+      right: 0; /* Lo extiende hasta el lado derecho */
+      z-index: 1001; /* Asegura que esté por encima de otros elementos */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Añade una sombra sutil */
     }
 
     header h1 {
@@ -71,35 +86,117 @@
       font-size: 2rem;
     }
 
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--celeste);
+    }
+
+    .section-header h3 {
+      font-size: 1.5rem;
+      color: #4caf50;
+      margin: 0;
+    }
+
+    .contador-citas {
+      background-color: #4caf50;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-left: auto;
+    }
+
     .citas {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 1.5rem;
     }
 
     .cita {
       background-color: white;
-      border-left: 6px solid var(--azul);
+      border-left: 6px solid #4caf50;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      padding: 1.2rem 1.5rem;
-      transition: 0.2s;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.15);
+      padding: 1.5rem;
+      transition: 0.3s;
+      position: relative;
     }
 
     .cita:hover {
-      transform: translateY(-3px);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(76, 175, 80, 0.25);
+    }
+
+    .cita-tag {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #4caf50;
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: bold;
     }
 
     .cita h3 {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       color: var(--azul);
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      margin-right: 80px; /* Espacio para el tag */
     }
 
     .cita p {
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.5rem;
       color: var(--gris-oscuro);
       font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .cita p strong {
+      color: var(--azul);
+      font-weight: 600;
+    }
+
+    .estado {
+      padding: 0.2rem 0.6rem;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .estado-programada { background-color: var(--azul-claro); color: white; }
+    .estado-confirmada { background-color: #4caf50; color: white; }
+    .estado-reagendada { background-color: #ff9800; color: white; }
+    .estado-cancelada { background-color: #f44336; color: white; }
+
+    .no-citas-icon {
+      font-size: 4rem;
+      color: var(--gris-claro);
+      margin-bottom: 1rem;
+    }
+
+    .no-citas h3 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .no-citas p {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gris-oscuro);
     }
 
     .sidebar {
@@ -107,14 +204,17 @@
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
+      align-items: center; /* Centra horizontalmente los elementos */
+      justify-content: flex-start; /* Mantiene los elementos arriba */
     }
 
     .card {
       background-color: white;
-      padding: 1rem;
+      padding: 1.5rem;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.08);
       text-align: center;
+      width: 100%; /* Asegura que use todo el ancho disponible */
     }
 
     .card h2 {
@@ -127,15 +227,28 @@
       display: inline-block;
       background-color: var(--azul-claro);
       color: white;
-      padding: 0.7rem 1.2rem;
+      padding: 0.8rem 1.5rem; 
       border-radius: 8px;
       text-decoration: none;
       font-weight: bold;
       transition: background 0.3s ease;
+      width: 100%; /* Hace que el botón ocupe todo el ancho del card */
+      box-sizing: border-box;
     }
 
     .btn:hover {
       background-color: var(--azul);
+    }
+
+    .btn-secondary {
+      background-color: white;
+      color: var(--azul);
+      border: 2px solid var(--azul-claro);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--azul-claro);
+      color: white;
     }
 
     footer {
@@ -149,68 +262,61 @@
       header {
         flex-direction: column;
         align-items: flex-start;
+        position: fixed; /* Mantiene fijo en móvil también */
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
       }
 
       nav {
         margin-top: 1rem;
       }
 
+      body {
+        padding-top: 120px; /* Más espacio en móvil porque el header es más alto */
+      }
+
       .dashboard {
         flex-direction: column;
+        padding: 1rem 2rem;
       }
 
       .sidebar {
         width: 100%;
         flex-direction: row;
         justify-content: space-around;
+        justify-content: center; /* Centra en móvil */
+        gap: 1rem;
       }
 
       .card {
         flex: 1;
+        max-width: none; /* Permite que se expanda en móvil */
       }
     }
   </style>
 </head>
-
 <body>
-  <header>
-    <h1>SCAH</h1>
-    <nav>
-      <a href="../vista_general/home.html">Inicio</a>
-      <a href="formularioCita.html">Agendar</a>
-      <a href="vistaReprogramacion.html">Reprogramar Cita</a>
-      <a href="historialMedicoPaciente.html">Historial</a>
-      <a href="vistaPerfilPaciente.html">Perfil</a>
-      <a href="#" id="cerrarSesion">Cerrar Sesión</a>
-    </nav>
-  </header>
-
+<header>
+  <h1>SCAH</h1>
+  <div id="navbar-container"></div>
+</header>
   <main class="dashboard">
     <!-- Contenido principal -->
     <div class="main-content">
       <h2>Bienvenido</h2>
-      <section class="citas">
-        <div class="cita">
-          <h3>Consulta General</h3>
-          <p><strong>Fecha:</strong> 15 de mayo de 2025</p>
-          <p><strong>Hora:</strong> 10:00 AM</p>
-          <p><strong>Médico:</strong> Dra. María González</p>
-          <p><strong>Estado:</strong> Confirmada</p>
+      <div class="section-header">
+        <span style="font-size: 2rem;">🗓️</span>
+        <h3>Próximas Citas</h3>
+        <span class="contador-citas" id="contadorCitas">0</span>
+      </div>
+      
+      <section class="citas" id="citasContainer">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Cargando tus próximas citas...</p>
         </div>
-        <div class="cita">
-          <h3>Consulta General</h3>
-          <p><strong>Fecha:</strong> 25 de mayo de 2025</p>
-          <p><strong>Hora:</strong> 2:30 PM</p>
-          <p><strong>Médico:</strong> Dr. Ricardo Díaz</p>
-          <p><strong>Estado:</strong> Pendiente</p>
-        </div>
-        <div class="cita">
-            <h3>Consulta General</h3>
-            <p><strong>Fecha:</strong> 25 de mayo de 2025</p>
-            <p><strong>Hora:</strong> 2:30 PM</p>
-            <p><strong>Médico:</strong> Dr. Ricardo Díaz</p>
-            <p><strong>Estado:</strong> Pendiente</p>
-          </div>
       </section>
     </div>
 
@@ -230,36 +336,232 @@
   <footer>
     Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
   </footer>
+
   <script>
-    if (!sessionStorage.getItem('token')) {
-      // Si no hay token, redirige al login
-      window.location.href = '../vista_general/loginRegistrarse.html';
-    }
+    let datosUsuario = null;
 
-    // Obtener correo del usuario
-    const correo = sessionStorage.getItem('correo');
-    if (correo) {
-      fetch('/api/auth/datos-usuario', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ correo })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.primer_nombre && data.primer_apellido) {
-          document.querySelector('.main-content h2').textContent =
-            `Bienvenido, ${data.primer_nombre} ${data.primer_apellido}`;
+    // Verificar autenticación y obtener datos del usuario
+    async function verificarAutenticacion() {
+      try {
+        const response = await fetch('/api/auth/datos-usuario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}) // El middleware usará req.session.cedula
+        });
+        console.log('📡 Respuesta del servidor:', response.status);
+
+        if (response.status === 401) {
+          // No autenticado - redirigir al login
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
         }
-      });
+
+        if (response.ok) {
+          datosUsuario = await response.json();
+          // Actualizar el saludo con el nombre del usuario
+          if (datosUsuario.primer_nombre && datosUsuario.primer_apellido) {
+            document.querySelector('.main-content h2').textContent =
+              `Bienvenido, ${datosUsuario.primer_nombre} ${datosUsuario.primer_apellido}`;
+          }
+          // Cargar las citas del usuario
+          cargarCitas();
+        }
+      } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        //window.location.href = '../vista_general/loginRegistrarse.html';
+      }
     }
 
-    // Cerrar sesión: elimina el token y redirige al login
-    document.getElementById('cerrarSesion').addEventListener('click', function(e) {
-      e.preventDefault();
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('correo');
-      window.location.replace('../vista_general/loginRegistrarse.html'); // Reemplaza la página actual en el historial
+    // Función para cargar las citas
+    async function cargarCitas() {
+      try {
+        const response = await fetch('/api/auth/citas-paciente', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}) // El middleware usará req.session.cedula
+        });
+
+        if (response.status === 401) {
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          mostrarCitas(data.citas);
+        }
+      } catch (error) {
+        console.error('Error al cargar las citas:', error);
+        document.getElementById('citasContainer').innerHTML = `
+          <div class="no-citas">
+            <div class="no-citas-icon">⚠️</div>
+            <h3>Error al cargar citas</h3>
+            <p>No se pudieron cargar tus citas. Por favor, intenta nuevamente.</p>
+            <button class="btn" onclick="location.reload()">Intentar de nuevo</button>
+          </div>
+        `;
+      }
+    }
+
+    // Función para mostrar las citas
+    function mostrarCitas(citas) {
+    const citasContainer = document.getElementById('citasContainer');
+    const contadorCitas = document.getElementById('contadorCitas');
+
+    if (citas && citas.length > 0) {
+      // Filtrar solo las citas futuras y que NO estén atendidas ni no asistidas
+      const citasFuturas = citas.filter(cita => 
+        esCitaFutura(cita.fecha_cita, cita.hora_cita) &&
+        cita.estado.toLowerCase() !== 'atendida' &&
+        cita.estado.toLowerCase() !== 'no asistió'
+      );
+      
+      // Actualizar contador
+      contadorCitas.textContent = citasFuturas.length;
+      
+      // Limpiar el contenedor
+      citasContainer.innerHTML = '';
+
+      if (citasFuturas.length > 0) {
+            // Agregar cada cita futura
+            citasFuturas.forEach(cita => {
+              const dias = diasHastaCita(cita.fecha_cita, cita.hora_cita);
+              let tagText = 'PRÓXIMA';
+              if (dias === 0) tagText = 'HOY';
+              else if (dias === 1) tagText = 'MAÑANA';
+              else if (dias <= 7) tagText = `EN ${dias} DÍAS`;
+              
+              const citaElement = document.createElement('div');
+              citaElement.className = 'cita';
+              
+              citaElement.innerHTML = `
+                <div class="cita-tag">${tagText}</div>
+                <h3>Consulta Médica</h3>
+                <p><strong>📅 Fecha:</strong> ${formatearFecha(cita.fecha_cita)}</p>
+                <p><strong>🕐 Hora:</strong> ${formatearHora(cita.hora_cita)}</p>
+                <p><strong>👨‍⚕️ Médico:</strong> ${cita.medico_nombre || 'No asignado'}</p>
+                <p><strong>🏥 Especialidad:</strong> ${cita.especialidad || 'No especificada'}</p>
+                <p><strong>📋 Estado:</strong> <span class="estado ${getEstadoClass(cita.estado)}">${cita.estado}</span></p>
+                <p><strong>🎫 Tiquete:</strong> ${cita.numero_tiquete}</p>
+              `;
+              citasContainer.appendChild(citaElement);
+            });
+          } else {
+            // Mostrar mensaje de no citas futuras
+            citasContainer.innerHTML = `
+              <div class="no-citas">
+                <h3>Sin citas programadas</h3>
+                <p>No tienes citas programadas en este momento.</p>
+                <a href="formularioCita.html" class="btn" style="margin-top: 1rem;">Agendar tu primera cita</a>
+              </div>
+            `;
+          }
+        } else {
+          // No hay citas en absoluto
+          contadorCitas.textContent = '0';
+          citasContainer.innerHTML = `
+            <div class="no-citas">
+              <div class="no-citas-icon">🏥</div>
+              <h3>¡Bienvenido a SCAH!</h3>
+              <p>Aún no tienes citas programadas. Comienza agendando tu primera consulta.</p>
+            </div>
+          `;
+        }
+      }
+
+    // Función para formatear la fecha
+    function formatearFecha(fecha) {
+      const opciones = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long',
+        timeZone: 'America/Panama' // Zona horaria de Panamá
+      };
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+      return fechaLocal.toLocaleDateString('es-ES', opciones);
+    }
+
+    // Función para formatear la hora
+    function formatearHora(hora) {
+      return hora.substring(0, 5); // Toma solo HH:MM
+    }
+
+    // Función para obtener el color del estado
+    function getEstadoClass(estado) {
+      const estadoLower = estado.toLowerCase();
+      switch(estadoLower) {
+        case 'programada': return 'estado-programada';
+        case 'confirmada': return 'estado-confirmada';
+        case 'reagendada': return 'estado-reagendada';
+        case 'cancelada': return 'estado-cancelada';
+        default: return '';
+      }
+    }
+
+    // Función para determinar si una cita es futura
+    function esCitaFutura(fecha, hora) {
+    // Crear la fecha de la cita de manera explícita
+    const [year, month, day] = fecha.split('-');
+    const [hour, minute] = hora.split(':');
+    
+    const fechaCita = new Date(
+      parseInt(year), 
+      parseInt(month) - 1, // Los meses en JavaScript empiezan en 0
+      parseInt(day), 
+      parseInt(hour), 
+      parseInt(minute)
+    );
+    
+    // Obtener la fecha actual (esto ya está en tu zona horaria local)
+    const ahora = new Date();
+    
+    return fechaCita >= ahora;
+  }
+
+    // Función para calcular días hasta la cita
+    function diasHastaCita(fecha, hora) {
+      // Crear fecha de manera explícita
+      const [year, month, day] = fecha.split('-');
+      const [hour, minute] = hora.split(':');
+      
+      const fechaCita = new Date(
+        parseInt(year), 
+        parseInt(month) - 1,
+        parseInt(day), 
+        parseInt(hour), 
+        parseInt(minute)
+      );
+      
+      // Usar fecha actual local
+      const ahora = new Date();
+      
+      // Para calcular días, solo necesitamos las fechas (sin horas)
+      const fechaHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+      const fechaCitaSolo = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      const diferencia = fechaCitaSolo - fechaHoy;
+      const dias = Math.round(diferencia / (1000 * 60 * 60 * 24));
+      
+      return dias;
+    }
+  </script>
+
+  <script type="module">
+    import { cargarNavbar } from '../navbar/navbar.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
     });
   </script>
+
+
+  
+
+
+
+  
 </body>
 </html>

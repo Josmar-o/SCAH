@@ -3,11 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard Administrativo - SCAH</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
-
+  <title>Gestión de Cupos - SCAH</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family+Questrial&display=swap" rel="stylesheet" />
+  
+  <!-- Script de verificación de acceso -->
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    // Verificar que solo los administrativos puedan acceder a esta vista
+    initVerificacionAcceso('administrativo');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -15,6 +20,9 @@
       --celeste: #9bc1e4;
       --gris-claro: #c8c7c9;
       --gris-oscuro: #8a8381;
+      --verde: #4caf50;
+      --naranja: #ff9800;
+      --rojo: #f44336;
     }
 
     * {
@@ -27,6 +35,7 @@
       font-family: 'Questrial', sans-serif;
       background-color: #f4f7fa;
       color: #333;
+      padding-top: 80px;
     }
 
     header {
@@ -36,6 +45,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1001;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     header h1 {
@@ -54,10 +69,33 @@
       text-decoration: underline;
     }
 
-    main {
-      max-width: 1200px;
+    .container {
+      max-width: 1400px;
       margin: 2rem auto;
       padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 2rem;
+    }
+
+    .calendar-section {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     h2 {
@@ -67,116 +105,755 @@
       text-align: center;
     }
 
-    .dashboard-grid {
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .nav-btn {
+      background: var(--azul-claro);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.3s;
+    }
+
+    .nav-btn:hover {
+      background: var(--azul);
+    }
+
+    .month-year {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.5rem;
+      color: var(--azul);
+    }
+
+    .calendar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--gris-claro);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
-    .card {
-      background-color: white;
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.2s ease;
+    .calendar-day-header {
+      background: var(--azul);
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.9rem;
     }
 
-    .card:hover {
-      transform: translateY(-4px);
+    .calendar-day {
+      background: white;
+      min-height: 120px;
+      padding: 0.5rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
-    .card h3 {
-      color: var(--azul-claro);
-      margin-bottom: 1rem;
-      font-size: 1.2rem;
+    .calendar-day:hover {
+      background: #f0f8ff;
     }
 
-    .card p {
+    .calendar-day.other-month {
+      background: #f8f9fa;
       color: var(--gris-oscuro);
+    }
+
+    .calendar-day.selected {
+      background: var(--celeste);
+      color: var(--azul);
+    }
+
+    .calendar-day.today {
+      background: #fff3e0;
+      border: 2px solid var(--naranja);
+    }
+
+    .day-number {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .cupos-indicator {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      margin-top: auto;
+    }
+
+    .cupo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--verde);
+    }
+
+    .cupo-dot.ocupado {
+      background: var(--rojo);
+    }
+
+    .cupo-dot.parcial {
+      background: var(--naranja);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: var(--azul);
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gris-claro);
+      border-radius: 6px;
+      font-size: 1rem;
     }
 
     .btn {
-      display: inline-block;
-      margin-top: 1.2rem;
-      background-color: var(--azul-claro);
+      background: var(--azul-claro);
       color: white;
-      padding: 0.6rem 1.2rem;
       border: none;
+      padding: 0.8rem 1.5rem;
       border-radius: 8px;
+      cursor: pointer;
       font-weight: bold;
-      text-decoration: none;
-      transition: background-color 0.3s;
+      transition: background 0.3s;
+      width: 100%;
+      margin-top: 1rem;
     }
 
     .btn:hover {
-      background-color: var(--azul);
+      background: var(--azul);
     }
 
-    footer {
-      text-align: center;
-      padding: 2rem;
+    .btn-success {
+      background: var(--verde);
+    }
+
+    .btn-success:hover {
+      background: #45a049;
+    }
+
+    .cupos-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .cupo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      border: 1px solid var(--gris-claro);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      background: #f8f9fa;
+    }
+
+    .cupo-info {
+      flex: 1;
+    }
+
+    .cupo-time {
+      font-weight: bold;
+      color: var(--azul);
+    }
+
+    .cupo-doctor {
       font-size: 0.9rem;
       color: var(--gris-oscuro);
+    }
+
+    .cupo-status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .status-disponible {
+      background: #e8f5e8;
+      color: var(--verde);
+    }
+
+    .status-ocupado {
+      background: #ffebee;
+      color: var(--rojo);
+    }
+
+    .delete-btn {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+
+    .delete-btn:hover {
+      background: #d32f2f;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 1200px) {
+      .container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .sidebar {
+        flex-direction: row;
+        overflow-x: auto;
+      }
+
+      .card {
+        min-width: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .calendar-day {
+        min-height: 80px;
+        padding: 0.25rem;
+      }
+
+      .calendar-day-header {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+      }
+
+      .sidebar {
+        flex-direction: column;
+      }
+
+      .card {
+        min-width: auto;
+      }
     }
   </style>
 </head>
 <body>
-
-  <!-- Navbar -->
   <header>
     <h1>SCAH</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Citas</a>
-      <a href="#">Usuarios</a>
-      <a href="#">Estadísticas</a>
-      <a href="#">Cerrar Sesión</a>
-    </nav>
+    <div id="navbar-container"></div>
   </header>
 
-  <!-- Dashboard administrativo -->
-  <main>
-    <h2>Panel de Administración</h2>
-    <div class="dashboard-grid">
-
-      <div class="card">
-        <h3>Citas Programadas</h3>
-        <p>Consulta todas las citas médicas agendadas por día, paciente o médico. Modifica o reprograma las citas programadas.</p>
-        <a href="#" class="btn">Ver Citas</a>
+  <div class="container">
+    <!-- Calendario principal -->
+    <div class="calendar-section">
+      <h2>Gestión de Cupos de Citas</h2>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="cupo-dot"></div>
+          <span>Cupos disponibles</span>
+        </div>
+        <div class="legend-item">
+          <div class="cupo-dot ocupado"></div>
+          <span>Cupos ocupados</span>
+        </div>
+        <div class="legend-item">
+          <div class="cupo-dot parcial"></div>
+          <span>Parcialmente ocupado</span>
+        </div>
       </div>
 
-      <div class="card">
-        <h3>Citas Completadas</h3>
-        <p>Verifica o modifica estado o informacion de cita completada.</p>
-        <a href="#" class="btn">ver Citas</a>
-      </div> 
-
-
-      <div class="card">
-        <h3>Usuarios Registrados</h3>
-        <p>Visualiza y administra la lista de pacientes y médicos activos en el sistema.</p>
-        <a href="#" class="btn">Ver Usuarios</a>
+      <div class="calendar-header">
+        <button class="nav-btn" id="prevMonth">← Anterior</button>
+        <div class="month-year" id="monthYear">Enero 2025</div>
+        <button class="nav-btn" id="nextMonth">Siguiente →</button>
       </div>
 
-      <div class="card">
-        <h3>Estadísticas</h3>
-        <p>Revisa gráficas y reportes sobre uso del sistema, asistencia y carga de citas.</p>
-        <a href="#" class="btn">Ver Reportes</a>
+      <div class="calendar" id="calendar">
+        <!-- Encabezados de días -->
+        <div class="calendar-day-header">Dom</div>
+        <div class="calendar-day-header">Lun</div>
+        <div class="calendar-day-header">Mar</div>
+        <div class="calendar-day-header">Mié</div>
+        <div class="calendar-day-header">Jue</div>
+        <div class="calendar-day-header">Vie</div>
+        <div class="calendar-day-header">Sáb</div>
+        
+        <!-- Los días se generarán dinámicamente -->
       </div>
-
-      <div class="card">
-        <h3>Agregar cita -administrador-</h3>
-        <p>Agrega cita y reprograma automaticamente</p>
-        <a href="#" class="btn">Ver Cambios</a>
-      </div>
-
-
     </div>
-  </main>
 
-  <footer>
-    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
-  </footer>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Formulario para agregar cupos -->
+      <div class="card">
+        <h3>Agregar Cupos</h3>
+        <form id="formAgregarCupos">
+          <div class="form-group">
+            <label for="fechaSeleccionada">Fecha Seleccionada</label>
+            <input type="date" id="fechaSeleccionada" readonly>
+          </div>
+          
+          <div class="form-group">
+            <label for="horaInicio">Hora de Inicio</label>
+            <input type="time" id="horaInicio" value="08:00">
+          </div>
+          
+          <div class="form-group">
+            <label for="horaFin">Hora de Fin</label>
+            <input type="time" id="horaFin" value="17:00">
+          </div>
+          
+          <div class="form-group">
+            <label for="intervalo">Intervalo (minutos)</label>
+            <select id="intervalo">
+              <option value="15">15 minutos</option>
+              <option value="20">20 minutos</option>
+              <option value="30" selected>30 minutos</option>
+              <option value="45">45 minutos</option>
+              <option value="60">60 minutos</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="medico">Médico</label>
+            <select id="medico">
+              <option value="">Seleccionar médico...</option>
+              <option value="1">Dr. Juan Pérez - Cardiología</option>
+              <option value="2">Dra. María García - Pediatría</option>
+              <option value="3">Dr. Carlos López - Medicina General</option>
+              <option value="4">Dra. Ana Rodríguez - Ginecología</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="btn btn-success">Generar Cupos</button>
+        </form>
+      </div>
 
+      <!-- Lista de cupos del día seleccionado -->
+      <div class="card">
+        <h3>Cupos del Día</h3>
+        <div id="fechaCupos">Selecciona una fecha</div>
+        <div class="cupos-list" id="cuposList">
+          <p style="text-align: center; color: var(--gris-oscuro); padding: 2rem;">
+            Selecciona una fecha para ver los cupos disponibles
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    let selectedDate = null; 
+    let cupos = {}; // Almacenará los cupos por fecha
+
+    // Datos de ejemplo para mostrar cupos
+    const cuposEjemplo = {
+      '2025-01-15': [
+        { hora: '08:00', medico: 'Dr. Juan Pérez', especialidad: 'Cardiología', ocupado: false },
+        { hora: '08:30', medico: 'Dr. Juan Pérez', especialidad: 'Cardiología', ocupado: true },
+        { hora: '09:00', medico: 'Dr. Juan Pérez', especialidad: 'Cardiología', ocupado: false },
+        { hora: '14:00', medico: 'Dra. María García', especialidad: 'Pediatría', ocupado: false },
+        { hora: '14:30', medico: 'Dra. María García', especialidad: 'Pediatría', ocupado: true },
+      ],
+      '2025-01-16': [
+        { hora: '10:00', medico: 'Dr. Carlos López', especialidad: 'Medicina General', ocupado: false },
+        { hora: '10:30', medico: 'Dr. Carlos López', especialidad: 'Medicina General', ocupado: false },
+        { hora: '15:00', medico: 'Dra. Ana Rodríguez', especialidad: 'Ginecología', ocupado: true },
+      ]
+    };
+
+    // Inicializar con datos de ejemplo
+    //cupos = cuposEjemplo;
+
+    
+    function generarCalendario() {
+      const calendar = document.getElementById('calendar');
+      const monthYear = document.getElementById('monthYear');
+      
+      // Limpiar calendario (mantener encabezados)
+      while (calendar.children.length > 7) {
+        calendar.removeChild(calendar.lastChild);
+      }
+      
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      // Actualizar título
+      const meses = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      monthYear.textContent = `${meses[month]} ${year}`;
+      
+      // Primer día del mes y último día
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      const startDate = new Date(firstDay);
+      startDate.setDate(startDate.getDate() - firstDay.getDay());
+      
+      // Generar 42 días (6 semanas)
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day';
+        
+        // Marcar días de otros meses
+        if (date.getMonth() !== month) {
+          dayElement.classList.add('other-month');
+        }
+        
+        // Marcar día actual
+        const today = new Date();
+        if (date.toDateString() === today.toDateString()) {
+          dayElement.classList.add('today');
+        }
+        
+        // Crear contenido del día
+        const dayNumber = document.createElement('div');
+        dayNumber.className = 'day-number';
+        dayNumber.textContent = date.getDate();
+        dayElement.appendChild(dayNumber);
+        
+        // Agregar indicadores de cupos
+        const cuposIndicator = document.createElement('div');
+        cuposIndicator.className = 'cupos-indicator';
+        
+        const fechaKey = date.toISOString().split('T')[0];
+        if (cupos[fechaKey]) {
+          const totalCupos = cupos[fechaKey].length;
+          const cuposOcupados = cupos[fechaKey].filter(c => c.ocupado).length;
+          
+          // Mostrar hasta 10 indicadores
+          const maxIndicators = Math.min(totalCupos, 10);
+          for (let j = 0; j < maxIndicators; j++) {
+            const dot = document.createElement('div');
+            dot.className = 'cupo-dot';
+            if (j < cuposOcupados) {
+              dot.classList.add('ocupado');
+            }
+            cuposIndicator.appendChild(dot);
+          }
+          
+          // Si hay más cupos, mostrar indicador especial
+          if (totalCupos > 10) {
+            const moreDot = document.createElement('div');
+            moreDot.className = 'cupo-dot';
+            moreDot.style.background = '#666';
+            moreDot.textContent = '+';
+            moreDot.style.fontSize = '6px';
+            moreDot.style.textAlign = 'center';
+            moreDot.style.color = 'white';
+            cuposIndicator.appendChild(moreDot);
+          }
+        }
+        
+        dayElement.appendChild(cuposIndicator);
+        
+        // Evento click
+        dayElement.addEventListener('click', () => seleccionarFecha(date));
+        
+        calendar.appendChild(dayElement);
+      }
+    }
+
+    function seleccionarFecha(date) {
+      // Remover selección anterior
+      document.querySelectorAll('.calendar-day.selected').forEach(day => {
+        day.classList.remove('selected');
+      });
+      
+      // Seleccionar nuevo día
+      event.target.closest('.calendar-day').classList.add('selected');
+      selectedDate = date;
+      
+      // Actualizar formulario
+      document.getElementById('fechaSeleccionada').value = date.toISOString().split('T')[0];
+      
+      // Mostrar cupos del día
+      mostrarCuposDelDia(date);
+    }
+    // Inicializar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Cargar médicos dinámicamente
+      const medicoSelect = document.getElementById('medico');
+      medicoSelect.disabled = true;
+      medicoSelect.innerHTML = '<option value="">Cargando médicos...</option>';
+
+      try {
+        const res = await fetch('/api/medico/todos');
+        const medicos = await res.json();
+        if (medicos.length === 0) {
+          medicoSelect.innerHTML = '<option value="">No hay médicos disponibles</option>';
+        } else {
+          medicoSelect.disabled = false;
+          medicoSelect.innerHTML = '<option value="">Seleccionar médico...</option>';
+          medicos.forEach(m => {
+            medicoSelect.innerHTML += `<option value="${m.cedula}">${m.primer_nombre} ${m.primer_apellido} - ${m.especialidad}</option>`;
+          });
+        }
+      } catch (error) {
+        medicoSelect.innerHTML = '<option value="">Error al cargar médicos</option>';
+      }
+
+      // Cargar todos los cupos del backend
+      try {
+        const res = await fetch('/api/cupo/todos');
+        const cuposBD = await res.json();
+        // Agrupa los cupos por fecha
+        cupos = {};
+        cuposBD.forEach(c => {
+          const fechaKey = c.fecha.split('T')[0];
+          if (!cupos[fechaKey]) cupos[fechaKey] = [];
+          cupos[fechaKey].push({
+            hora: c.hora,
+            medico: `${c.primer_nombre ? c.primer_nombre : ''} ${c.primer_apellido ? c.primer_apellido : ''}`.trim(),
+            especialidad: c.especialidad || '',
+            ocupado: !!c.ocupado
+          });
+        });
+        generarCalendario();
+      } catch (error) {
+        console.error('Error al cargar los cupos iniciales:', error);
+      }
+    });
+
+
+    function mostrarCuposDelDia(date) {
+      const fechaCupos = document.getElementById('fechaCupos');
+      const cuposList = document.getElementById('cuposList');
+      
+      const fechaKey = date.toISOString().split('T')[0];
+      const opciones = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      
+      fechaCupos.textContent = date.toLocaleDateString('es-ES', opciones);
+      
+      if (cupos[fechaKey] && cupos[fechaKey].length > 0) {
+        cuposList.innerHTML = '';
+        cupos[fechaKey].forEach((cupo, index) => {
+          const cupoElement = document.createElement('div');
+          cupoElement.className = 'cupo-item';
+          cupoElement.innerHTML = `
+            <div class="cupo-info">
+              <div class="cupo-time">${cupo.hora}</div>
+              <div class="cupo-doctor">${cupo.medico} - ${cupo.especialidad}</div>
+            </div>
+            <div>
+              <span class="cupo-status ${cupo.ocupado ? 'status-ocupado' : 'status-disponible'}">
+                ${cupo.ocupado ? 'Ocupado' : 'Disponible'}
+              </span>
+              <button class="delete-btn" onclick="eliminarCupo('${fechaKey}', ${index})">×</button>
+            </div>
+          `;
+          cuposList.appendChild(cupoElement);
+        });
+      } else {
+        cuposList.innerHTML = `
+          <p style="text-align: center; color: var(--gris-oscuro); padding: 2rem;">
+            No hay cupos programados para este día
+          </p>
+        `;
+      }
+    }
+
+    function eliminarCupo(fecha, index) {
+      if (confirm('¿Estás seguro de que quieres eliminar este cupo?')) {
+        cupos[fecha].splice(index, 1);
+        if (cupos[fecha].length === 0) {
+          delete cupos[fecha];
+        }
+        generarCalendario();
+        if (selectedDate) {
+          mostrarCuposDelDia(selectedDate);
+        }
+      }
+    }
+
+    // Event listeners
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      generarCalendario();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      generarCalendario();
+    });
+
+    document.getElementById('formAgregarCupos').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      if (!selectedDate) {
+        alert('Por favor, selecciona una fecha primero');
+        return;
+      }
+      
+      const horaInicio = document.getElementById('horaInicio').value;
+      const horaFin = document.getElementById('horaFin').value;
+      const intervalo = parseInt(document.getElementById('intervalo').value);
+      const medicoId = document.getElementById('medico').value;
+      
+      if (!medicoId) {
+        alert('Por favor, selecciona un médico');
+        return;
+      }
+      
+      // Generar cupos
+      async function generarCupos(fecha, horaInicio, horaFin, intervalo, medicoId) {
+        const fechaKey = fecha.toISOString().split('T')[0];
+
+        // Obtener información del médico seleccionado
+        const medicoSelect = document.getElementById('medico');
+        const medicoOption = medicoSelect.options[medicoSelect.selectedIndex];
+        const medicoTexto = medicoOption.textContent;
+        const [nombreCompleto, especialidad] = medicoTexto.split(' - ');
+
+        const [startHour, startMinute] = horaInicio.split(':').map(Number);
+        const [endHour, endMinute] = horaFin.split(':').map(Number);
+
+        const startTime = startHour * 60 + startMinute;
+        const endTime = endHour * 60 + endMinute;
+
+        // Generar cupos en memoria para enviar al backend
+        let cuposParaCrear = [];
+        for (let time = startTime; time < endTime; time += intervalo) {
+          const hour = Math.floor(time / 60);
+          const minute = time % 60;
+          const horaString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          cuposParaCrear.push({
+            fecha: fechaKey,
+            hora: horaString,
+            cedula_medico: medicoId
+          });
+        }
+
+        // Enviar cupos al backend
+        try {
+          const res = await fetch('/api/cupo/crear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cupos: cuposParaCrear })
+          });
+          const data = await res.json();
+          
+          if (res.ok) {
+            alert(`Se generaron ${cuposParaCrear.length} cupos nuevos para ${nombreCompleto}`);
+            
+            // Actualizar cupos en memoria para mostrar inmediatamente
+            if (!cupos[fechaKey]) cupos[fechaKey] = [];
+            
+            cuposParaCrear.forEach(cupo => {
+              cupos[fechaKey].push({
+                hora: cupo.hora,
+                medico: nombreCompleto,
+                especialidad: especialidad || 'No especificada',
+                ocupado: false
+              });
+            });
+            
+            // Ordenar cupos por hora
+            cupos[fechaKey].sort((a, b) => a.hora.localeCompare(b.hora));
+            
+            generarCalendario();
+            mostrarCuposDelDia(selectedDate);
+          } else {
+            alert(data.message || 'Error al crear cupos');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error de conexión al crear cupos');
+        }
+      }
+
+      // Llamar a la función para generar cupos
+      generarCupos(selectedDate, horaInicio, horaFin, intervalo, medicoId);
+  }); // <-- Esta llave cierra el event listener del submit
+
+    // Cerrar sesión
+    document.getElementById('cerrarSesion').addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+      }
+      
+      window.location.replace('../vista_general/loginRegistrarse.html');
+    });
+
+    // Inicializar calendario
+    generarCalendario();
+
+    async function cargarCuposDelDia(cedula_medico, fechaKey) {
+      try {
+        const res = await fetch(`/api/cupo/por-medico?cedula_medico=${encodeURIComponent(cedula_medico)}&fecha=${encodeURIComponent(fechaKey)}`);
+        const cuposBD = await res.json();
+        // Transforma los cupos para que tengan el mismo formato que usas en el frontend
+        cupos[fechaKey] = cuposBD.map(c => ({
+          hora: c.hora,
+          medico: `${c.primer_nombre ? c.primer_nombre : ''} ${c.primer_apellido ? c.primer_apellido : ''}`.trim(),
+          especialidad: c.especialidad || '',
+          ocupado: !!c.ocupado
+        }));
+        generarCalendario();
+        mostrarCuposDelDia(new Date(fechaKey));
+      } catch (error) {
+        console.error('Error al recargar los cupos del día:', error);
+      }
+    }
+  </script>
+
+    <script type="module">
+    import { cargarNavbar } from '../navbar/navbarAdmin.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
 </body>
 </html>
