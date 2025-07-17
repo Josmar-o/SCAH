@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agendar Cita - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
+
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('administrativo');
+  </script>
+  
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f7f9fb;
+      color: #333;
+      padding-top: 80px; /* Añade espacio arriba para compensar el header fijo */
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed; /* Hace que el header se quede fijo */
+      top: 0; /* Lo posiciona en la parte superior */
+      left: 0; /* Lo posiciona desde el lado izquierdo */
+      right: 0; /* Lo extiende hasta el lado derecho */
+      z-index: 1001; /* Asegura que esté por encima de otros elementos */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Añade una sombra sutil */
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 3rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: var(--azul);
+    }
+
+    select, input[type="date"], input[type="time"], input[type="email"], input[type="text"] {
+      width: 100%;
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid var(--gris-claro);
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    select:focus, input[type="date"]:focus, input[type="time"]:focus, input[type="email"]:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--azul-claro);
+      box-shadow: 0 0 0 3px rgba(45, 147, 213, 0.1);
+    }
+
+    /* Estilos para validación del input de cédula */
+    .input-group {
+      position: relative;
+    }
+
+    .input-feedback {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.85rem;
+      border-radius: 0 0 6px 6px;
+      margin-top: -1px;
+      z-index: 10;
+    }
+
+    .input-feedback.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .input-feedback.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .input-feedback.loading {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    input.valid {
+      border-color: #28a745;
+    }
+
+    input.invalid {
+      border-color: #dc3545;
+    }
+
+    input.loading {
+      border-color: #ffc107;
+    }
+
+    .full-width {
+      grid-column: span 2;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.9rem 1.5rem;
+      background-color: var(--azul-claro);
+      color: white;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease, opacity 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: var(--azul);
+    }
+
+    button:disabled {
+      background-color: var(--gris-claro);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.9rem;
+      color: var(--gris-oscuro);
+    }
+
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      .full-width {
+        grid-column: span 1;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        position: fixed; /* Mantiene fijo en móvil también */
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+      }
+
+      nav {
+        margin-top: 1rem;
+      }
+
+      body {
+        padding-top: 120px; /* Más espacio en móvil porque el header es más alto */
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <div id="navbar-container"></div>
+  </header>
+
+  <!-- Contenido principal -->
+  <main>
+    <h2>Agendar Nueva Cita</h2>
+    <form action="#" method="POST">
+      <div class="input-group">
+        <label for="paciente">Cédula del Paciente</label>
+        <input type="text" id="paciente" name="paciente" placeholder="Ej: 8-888-8888 o 88888888" required>
+        <div id="paciente-feedback" class="input-feedback" style="display: none;"></div>
+      </div>
+
+      <div>
+        <label for="especialidad">Tipo de Cita / Especialidad</label>
+        <select id="especialidad" name="especialidad" required>
+          <option value="">Seleccione una especialidad</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="medico">Médico</label>
+        <select id="medico" name="medico" required>
+          <option value="">Seleccione un médico</option>
+        </select> 
+      </div>
+
+      <div>
+        <label for="fecha">Fecha</label>
+        <input type="date" id="fecha" name="fecha" required>
+      </div>
+
+      <div>
+        <label for="hora">Hora</label>
+        <select id="hora" name="hora" required>
+          <option value="">Seleccione un médico y fecha</option>
+        </select>
+      </div>
+
+      <!-- <div>
+        <label for="provincia">Provincia</label>
+        <select id="provincia" name="provincia" required>
+          <option value="">Seleccione una provincia</option>
+          <option>Panamá</option>
+          <option>Chiriquí</option>
+          <option>Colón</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="distrito">Distrito</label>
+        <select id="distrito" name="distrito" required>
+          <option value="">Seleccione un distrito</option>
+          <option>San Miguelito</option>
+          <option>David</option>
+          <option>La Chorrera</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="corregimiento">Corregimiento</label>
+        <select id="corregimiento" name="corregimiento" required>
+          <option value="">Seleccione un corregimiento</option>
+          <option>Belisario Porras</option>
+          <option>El Coco</option>
+          <option>24 de Diciembre</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="policlinica">Policlínica</label>
+        <select id="policlinica" name="policlinica" required>
+          <option value="">Seleccione una policlínica</option>
+          <option>Policlínica JJ Vallarino</option>
+          <option>Policlínica Dr. Hugo Spadafora</option>
+        </select>
+      </div> -->
+
+      <div class="full-width">
+        <button type="submit">Confirmar Cita</button>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
+  </footer>
+
+    <script>
+    let datosUsuario = null;
+    let pacienteValidado = false;
+    let pacienteSeleccionado = null;
+
+    // Referencias a elementos del DOM
+    const pacienteInput = document.getElementById('paciente');
+    const pacienteFeedback = document.getElementById('paciente-feedback');
+
+    // El administrador puede ingresar la cédula con el formato que desee
+    // No se aplica formateo automático
+
+    // Verificar autenticación al cargar la página
+    async function verificarAutenticacion() {
+      try {
+        const response = await fetch('/api/auth/datos-usuario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+
+        if (response.status === 401) {
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.ok) {
+          datosUsuario = await response.json();
+          console.log('Usuario autenticado:', datosUsuario);
+          
+          // Verificar que sea administrador
+          if (datosUsuario.rol !== 'administrativo') {
+            alert('Acceso denegado. Solo los administradores pueden acceder a esta página.');
+            window.location.href = '../vista_general/loginRegistrarse.html';
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        window.location.href = '../vista_general/loginRegistrarse.html';
+      }
+    }
+
+    // Función para validar cédula del paciente
+    async function validarPaciente(cedula) {
+      // Limpiar espacios en blanco
+      cedula = cedula.trim();
+      
+      // Validar que tenga contenido
+      if (!cedula) {
+        mostrarFeedback('error', 'Ingrese una cédula');
+        return false;
+      }
+
+      // Validar formato de cédula panameña (con o sin guiones)
+      const cedulaSinGuiones = cedula.replace(/-/g, '');
+      if (!/^\d{7,9}$/.test(cedulaSinGuiones)) {
+        mostrarFeedback('error', 'Ingrese una cédula válida (7-9 dígitos)');
+        return false;
+      }
+
+      mostrarFeedback('loading', 'Verificando paciente...');
+      
+      try {
+        const response = await fetch('/api/auth/verificar-paciente-cedula', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cedula })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.existe) {
+          pacienteSeleccionado = data.paciente;
+          pacienteValidado = true;
+          mostrarFeedback('success', `Paciente encontrado: ${data.paciente.primer_nombre} ${data.paciente.primer_apellido}`);
+          return true;
+        } else {
+          pacienteValidado = false;
+          pacienteSeleccionado = null;
+          mostrarFeedback('error', 'No se encontró un paciente registrado con esta cédula');
+          return false;
+        }
+      } catch (error) {
+        console.error('Error al validar paciente:', error);
+        pacienteValidado = false;
+        pacienteSeleccionado = null;
+        mostrarFeedback('error', 'Error al verificar el paciente');
+        return false;
+      }
+    }
+
+    // Función para mostrar feedback visual
+    function mostrarFeedback(tipo, mensaje) {
+      pacienteFeedback.style.display = 'block';
+      pacienteFeedback.className = `input-feedback ${tipo}`;
+      pacienteFeedback.textContent = mensaje;
+      
+      pacienteInput.className = tipo === 'loading' ? 'loading' : (tipo === 'success' ? 'valid' : 'invalid');
+    }
+
+    // Event listener para validación en tiempo real
+    let timeoutId;
+    pacienteInput.addEventListener('input', function() {
+      clearTimeout(timeoutId);
+      pacienteValidado = false;
+      pacienteSeleccionado = null;
+      
+      if (this.value.trim() === '') {
+        pacienteFeedback.style.display = 'none';
+        pacienteInput.className = '';
+        return;
+      }
+      
+      // Debounce para evitar muchas peticiones
+      timeoutId = setTimeout(() => {
+        validarPaciente(this.value.trim());
+      }, 500);
+    });
+
+    // Habilitar/deshabilitar botón según validación
+    function actualizarEstadoBoton() {
+      const btnSubmit = document.querySelector('form button[type="submit"]');
+      btnSubmit.disabled = !pacienteValidado;
+      btnSubmit.style.opacity = pacienteValidado ? '1' : '0.6';
+      btnSubmit.style.cursor = pacienteValidado ? 'pointer' : 'not-allowed';
+    }
+
+    // Actualizar estado del botón cuando cambie la validación
+    setInterval(actualizarEstadoBoton, 100);
+
+    // --- ESPECIALIDAD Y MÉDICO DINÁMICOS ---
+    const especialidadSelect = document.getElementById('especialidad');
+    const medicoSelect = document.getElementById('medico');
+    const fechaInput = document.getElementById('fecha');
+    const horaSelect = document.getElementById('hora');
+
+    medicoSelect.disabled = true;
+    horaSelect.disabled = true;
+
+    // Cargar especialidades desde el backend al cargar la página
+    document.addEventListener('DOMContentLoaded', async () => {
+      await verificarAutenticacion();
+
+      especialidadSelect.innerHTML = '<option value="">Cargando especialidades...</option>';
+      const res = await fetch('/api/medico/especialidades');
+      const especialidades = await res.json();
+      especialidadSelect.innerHTML = '<option value="">Seleccione una especialidad</option>';
+      especialidades.forEach(e => {
+        especialidadSelect.innerHTML += `<option value="${e.especialidad}">${e.especialidad}</option>`;
+      });
+    });
+
+    // Actualizar médicos disponibles
+    async function actualizarMedicosDisponibles() {
+      const esp = especialidadSelect.value;
+      const fecha = fechaInput.value;
+      medicoSelect.innerHTML = '';
+      if (!esp || !fecha) {
+        medicoSelect.innerHTML = '<option value="">Seleccione especialidad y fecha</option>';
+        medicoSelect.disabled = true;
+        horaSelect.innerHTML = '<option value="">Seleccione un médico y fecha</option>';
+        horaSelect.disabled = true;
+        return;
+      }
+      medicoSelect.disabled = false;
+      medicoSelect.innerHTML = '<option value="">Cargando médicos...</option>';
+      const res = await fetch(`/api/cupo/medicos-disponibles?fecha=${encodeURIComponent(fecha)}&especialidad=${encodeURIComponent(esp)}`);
+      const medicos = await res.json();
+      if (!medicos.length) {
+        medicoSelect.innerHTML = '<option value="">No hay médicos disponibles</option>';
+        medicoSelect.disabled = true;
+        horaSelect.innerHTML = '<option value="">Seleccione un médico y fecha</option>';
+        horaSelect.disabled = true;
+      } else {
+        medicoSelect.innerHTML = '<option value="">Seleccione un médico</option>';
+        medicos.forEach(m => {
+          medicoSelect.innerHTML += `<option value="${m.cedula}">${m.primer_nombre} ${m.primer_apellido}</option>`;
+        });
+        horaSelect.innerHTML = '<option value="">Seleccione un médico y fecha</option>';
+        horaSelect.disabled = true;
+      }
+    }
+
+    // Actualizar horas disponibles
+    async function actualizarHorasDisponibles() {
+      const fecha = fechaInput.value;
+      const medico = medicoSelect.value;
+      if (!fecha || !medico) {
+        horaSelect.innerHTML = '<option value="">Seleccione un médico y fecha</option>';
+        horaSelect.disabled = true;
+        return;
+      }
+      horaSelect.disabled = false;
+      horaSelect.innerHTML = '<option value="">Cargando horas...</option>';
+      const res = await fetch(`/api/cupo/horas-disponibles?fecha=${encodeURIComponent(fecha)}&cedula_medico=${encodeURIComponent(medico)}`);
+      const horas = await res.json();
+      if (!horas.length) {
+        horaSelect.innerHTML = '<option value="">No hay horas disponibles</option>';
+        horaSelect.disabled = true;
+      } else {
+        horaSelect.innerHTML = '<option value="">Seleccione una hora</option>';
+        horas.forEach(h => {
+          horaSelect.innerHTML += `<option value="${h.hora}">${h.hora.substring(0,5)}</option>`;
+        });
+      }
+    }
+
+    // Listeners
+    especialidadSelect.addEventListener('change', actualizarMedicosDisponibles);
+    fechaInput.addEventListener('change', actualizarMedicosDisponibles);
+    medicoSelect.addEventListener('change', actualizarHorasDisponibles);
+    fechaInput.addEventListener('change', actualizarHorasDisponibles);
+
+    // Manejar el envío del formulario de cita
+    document.querySelector('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      console.log('Iniciando proceso de creación de cita...');
+
+      // Verificar que el paciente esté validado
+      if (!pacienteValidado || !pacienteSeleccionado) {
+        alert('Por favor, ingrese y valide una cédula de paciente válida.');
+        return;
+      }
+
+      // Verificar autenticación del administrador
+      if (!datosUsuario) {
+        alert('Error: No se han cargado los datos del usuario. Será redirigido al login.');
+        window.location.href = '../vista_general/loginRegistrarse.html';
+        return;
+      }
+
+      // Verificar que sea administrador
+      if (datosUsuario.rol !== 'administrativo') {
+        alert('Error: Solo los administradores pueden crear citas desde este panel.');
+        return;
+      }
+
+      // Obtener los valores del formulario
+      const fecha_cita = fechaInput.value;
+      const hora_cita = horaSelect.value;
+      const cedula_medico = medicoSelect.value;
+      const cedula_paciente = pacienteSeleccionado.cedula;
+      const estado = 'Programada';
+      const numero_tiquete = Math.random().toString(36).substr(2, 9).toUpperCase();
+
+      // Validar que todos los campos estén completos
+      if (!fecha_cita || !hora_cita || !cedula_medico) {
+        alert('Por favor, complete todos los campos del formulario.');
+        return;
+      }
+
+      // Confirmación antes de enviar
+      const confirmacion = confirm(`¿Confirma la creación de la cita para ${pacienteSeleccionado.primer_nombre} ${pacienteSeleccionado.primer_apellido} el ${fecha_cita} a las ${hora_cita}?`);
+      if (!confirmacion) {
+        return;
+      }
+
+      try {
+        // Enviar datos al backend
+        console.log('Enviando cita con datos:', { 
+          fecha_cita, 
+          hora_cita, 
+          cedula_medico, 
+          cedula_paciente, 
+          estado, 
+          numero_tiquete 
+        });
+
+        const response = await fetch('/api/cita/crear-cita-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            fecha_cita, 
+            hora_cita, 
+            cedula_medico, 
+            cedula_paciente,
+            estado, 
+            numero_tiquete 
+          })
+        });
+
+        console.log('Response status:', response.status);
+
+        if (response.status === 401) {
+          alert('Sesión expirada. Será redirigido al login.');
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.status === 403) {
+          alert('No tiene permisos para realizar esta acción. Debe ser administrador.');
+          return;
+        }
+
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (response.ok) {
+          alert(`Cita registrada correctamente para ${pacienteSeleccionado.primer_nombre} ${pacienteSeleccionado.primer_apellido}\nNúmero de tiquete: ${numero_tiquete}`);
+          // Limpiar el formulario
+          document.querySelector('form').reset();
+          pacienteValidado = false;
+          pacienteSeleccionado = null;
+          pacienteFeedback.style.display = 'none';
+          pacienteInput.className = '';
+          
+          // Resetear selects
+          medicoSelect.innerHTML = '<option value="">Seleccione un médico</option>';
+          medicoSelect.disabled = true;
+          horaSelect.innerHTML = '<option value="">Seleccione un médico y fecha</option>';
+          horaSelect.disabled = true;
+        } else {
+          alert('Error al registrar la cita: ' + (data.message || 'Error desconocido'));
+        }
+      } catch (error) {
+        console.error('Error en la petición:', error);
+        alert('Error de conexión al intentar crear la cita. Por favor, verifique su conexión e intente nuevamente.');
+      }
+    });
+
+    </script>
+
+
+  <script type="module">
+    import { cargarNavbar } from '../navbar/navbarAdmin.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
+
+</body>
+</html>

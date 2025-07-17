@@ -8,6 +8,11 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
 
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('paciente');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -25,8 +30,9 @@
 
     body {
       font-family: 'Questrial', sans-serif;
-      background-color: #f4f7fa;
+      background-color: #f7f9fb;
       color: #333;
+      padding-top: 80px; /* Añade espacio arriba para compensar el header fijo */
     }
 
     header {
@@ -36,6 +42,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed; /* Hace que el header se quede fijo */
+      top: 0; /* Lo posiciona en la parte superior */
+      left: 0; /* Lo posiciona desde el lado izquierdo */
+      right: 0; /* Lo extiende hasta el lado derecho */
+      z-index: 1001; /* Asegura que esté por encima de otros elementos */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Añade una sombra sutil */
     }
 
     header h1 {
@@ -121,6 +133,24 @@
       .form-container {
         padding: 1.5rem;
       }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        position: fixed; /* Mantiene fijo en móvil también */
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+      }
+
+      nav {
+        margin-top: 1rem;
+      }
+
+      body {
+        padding-top: 120px; /* Más espacio en móvil porque el header es más alto */
+      }
     }
   </style>
 </head>
@@ -129,12 +159,7 @@
   <!-- Navbar -->
   <header>
     <h1>SCAH</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Citas</a>
-      <a href="#">Perfil</a>
-      <a href="#">Cerrar Sesión</a>
-    </nav>
+    <div id="navbar-container"></div>
   </header>
 
   <!-- Formulario de Cancelación/Reprogramación -->
@@ -146,17 +171,25 @@
         <div class="form-group">
           <label for="cita">Seleccione la cita a cancelar o reprogramar:</label>
           <select id="cita" name="cita" required>
-            <option value="">Seleccione una cita</option>
-            <option value="1">Cita con Dr. Pérez - 15/05/2025 10:00 AM</option>
-            <option value="2">Cita con Dr. García - 16/05/2025 02:30 PM</option>
-            <option value="3">Cita con Dra. López - 17/05/2025 09:00 AM</option>
+          </select>
+        </div>
+
+    
+        <div class="form-group">
+          <label for="accion">Acción:</label>
+          <select id="accion" name="accion" required>
+            <option value="">Seleccione una acción</option>
+            <option value="reagendar">Reprogramar</option>
+            <option value="cancelar">Cancelar</option>
           </select>
         </div>
 
         <!-- Nueva Fecha y Hora (Solo si es Reprogramar) -->
         <div class="form-group">
           <label for="nuevaFecha">Nueva fecha y hora (solo para reprogramar):</label>
-          <input type="datetime-local" id="nuevaFecha" name="nuevaFecha">
+          <select id="nuevaFecha" name="nuevaFecha" disabled>
+            <option value="">Seleccione una cita y acción</option>
+          </select>
         </div>
 
         <!-- Motivo de la cancelación/reprogramación -->
@@ -172,6 +205,166 @@
       </form>
     </div>
   </section>
+    <script>
+    let citasPaciente = [];
+    let medicoActual = null;
 
+    const citaSelect = document.getElementById('cita');
+    const accionSelect = document.getElementById('accion');
+    const nuevaFechaSelect = document.getElementById('nuevaFecha');
+
+    // Cargar citas del paciente al cargar la página
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Verificar autenticación
+      const res = await fetch('/api/auth/citas-paciente', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      if (res.status === 401) {
+        window.location.href = '../vista_general/loginRegistrarse.html';
+        return;
+      }
+      const data = await res.json();
+      // Solo citas futuras y no canceladas/atendidas/no asistió
+      const hoy = new Date();
+      citasPaciente = (data.citas || []).filter(cita => {
+        const citaFecha = new Date(`${cita.fecha_cita}T${cita.hora_cita}`);
+        return (
+          citaFecha > hoy &&
+          !['Cancelada', 'No asistió', 'Atendida'].includes(cita.estado)
+        );
+      });
+      citaSelect.innerHTML = '<option value="">Seleccione una cita</option>';
+      citasPaciente.forEach(cita => {
+        citaSelect.innerHTML += `<option value="${cita.id_cita}" data-medico="${cita.cedula_medico}">
+          ${cita.medico_nombre} - ${cita.fecha_cita} ${cita.hora_cita.substring(0,5)}
+        </option>`;
+      });
+      nuevaFechaSelect.disabled = true;
+      nuevaFechaSelect.innerHTML = '<option value="">Seleccione una cita y acción</option>';
+    });
+
+    // Cuando cambia la acción
+    accionSelect.addEventListener('change', async function() {
+      if (this.value === 'reagendar' && citaSelect.value) {
+        nuevaFechaSelect.disabled = false;
+        await cargarCuposDisponibles();
+      } else {
+        nuevaFechaSelect.disabled = true;
+        nuevaFechaSelect.innerHTML = '<option value="">Seleccione una cita y acción</option>';
+      }
+    });
+
+    // Cuando cambia la cita
+    citaSelect.addEventListener('change', async function() {
+      if (accionSelect.value === 'reagendar' && this.value) {
+        nuevaFechaSelect.disabled = false;
+        await cargarCuposDisponibles();
+      } else {
+        nuevaFechaSelect.disabled = true;
+        nuevaFechaSelect.innerHTML = '<option value="">Seleccione una cita y acción</option>';
+      }
+    });
+
+    // Cargar cupos disponibles del médico de la cita seleccionada
+    async function cargarCuposDisponibles() {
+      const idCita = citaSelect.value;
+      if (!idCita) return;
+      const cita = citasPaciente.find(c => c.id_cita == idCita);
+      if (!cita) return;
+      const medico = cita.cedula_medico;
+
+      // Obtener todos los cupos futuros disponibles del médico
+      const res = await fetch(`/api/cupo/todos?cedula_medico=${encodeURIComponent(medico)}`);
+      const cupos = await res.json();
+
+      // Filtrar solo cupos de fechas estrictamente futuras y disponibles
+      const hoyStr = (new Date()).toISOString().split('T')[0];
+      const cuposDisponibles = cupos
+        .filter(c => {
+          const fechaStr = c.fecha.split('T')[0];
+          // Excluye cupos de hoy y del pasado
+          return !c.ocupado && fechaStr > hoyStr;
+        })
+        .sort((a, b) => {
+          const [yearA, monthA, dayA] = a.fecha.split('T')[0].split('-');
+          const [hourA, minuteA] = a.hora.split(':');
+          const fechaA = new Date(parseInt(yearA), parseInt(monthA) - 1, parseInt(dayA), parseInt(hourA), parseInt(minuteA));
+          const [yearB, monthB, dayB] = b.fecha.split('T')[0].split('-');
+          const [hourB, minuteB] = b.hora.split(':');
+          const fechaB = new Date(parseInt(yearB), parseInt(monthB) - 1, parseInt(dayB), parseInt(hourB), parseInt(minuteB));
+          return fechaA - fechaB;
+        });
+
+      nuevaFechaSelect.innerHTML = cuposDisponibles.length
+        ? '<option value="">Seleccione nueva fecha y hora</option>'
+        : '<option value="">No hay cupos disponibles</option>';
+
+      cuposDisponibles.forEach(c => {
+        const fecha = c.fecha.split('T')[0];
+        const hora = c.hora.length === 5 ? c.hora + ':00' : c.hora;
+        nuevaFechaSelect.innerHTML += `<option value="${fecha}T${hora}">${fecha} ${hora.substring(0,5)}</option>`;
+      });
+    }
+
+    // Enviar el formulario según la acción seleccionada
+    document.querySelector('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const idCita = citaSelect.value;
+      const accion = accionSelect.value;
+      const motivo = document.getElementById('motivo').value;
+      const nuevaFechaHora = nuevaFechaSelect.value;
+
+      if (!idCita || !accion || !motivo || (accion === 'reagendar' && !nuevaFechaHora)) {
+        alert('Por favor, complete todos los campos requeridos.');
+        return;
+      }
+
+      if (accion === 'reagendar') {
+        const [nueva_fecha, nueva_hora] = nuevaFechaHora.split('T');
+        const hora_final = nueva_hora.length === 5 ? nueva_hora + ':00' : nueva_hora;
+        
+        console.log('=== DEBUG FRONTEND REAGENDAR ===');
+        console.log('Valor seleccionado:', nuevaFechaHora);
+        console.log('Nueva fecha:', nueva_fecha);
+        console.log('Nueva hora original:', nueva_hora);
+        console.log('Hora final:', hora_final);
+        console.log('ID Cita:', idCita);
+        console.log('================================');
+        
+        const res = await fetch('/api/reagendar/reagendar-cita', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_cita: idCita, nueva_fecha, nueva_hora: hora_final, motivo })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Cita reprogramada correctamente.');
+          window.location.reload();
+        } else {
+          alert(data.message || 'Error al reprogramar la cita.');
+        }
+      } else if (accion === 'cancelar') {
+        const res = await fetch('/api/reagendar/cancelar-cita', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_cita: idCita, motivo })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('Cita cancelada correctamente.');
+          window.location.reload();
+        } else {
+          alert(data.message || 'Error al cancelar la cita.');
+        }
+      }
+    });
+
+ </script>
+
+   <script type="module">
+    import { cargarNavbar } from '../navbar/navbar.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
 </body>
 </html>

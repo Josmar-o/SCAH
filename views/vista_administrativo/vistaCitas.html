@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestión de Citas - SCAH</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('administrativo');
+  </script>
+  
+  <style>
+    :root {
+      --azul: #004f98;
+      --azul-claro: #2d93d5;
+      --celeste: #9bc1e4;
+      --gris-claro: #c8c7c9;
+      --gris-oscuro: #8a8381;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Questrial', sans-serif;
+      background-color: #f7f9fb;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 1.8rem;
+    }
+
+    nav a {
+      color: white;
+      margin-left: 1.5rem;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .sidebar h3 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .sidebar label {
+      display: block;
+      margin-top: 1rem;
+      font-weight: bold;
+      color: var(--gris-oscuro);
+    }
+
+    .sidebar select, .sidebar input {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.3rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .content {
+      flex: 1;
+    }
+
+    .content h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    thead {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gris-claro);
+      vertical-align: middle;
+      height: 60px;
+    }
+
+    tr:hover {
+      background-color: var(--celeste);
+      color: black;
+    }
+
+    .status {
+      font-weight: bold;
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    .atendida, .completada {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .programada, .confirmada, .aprobada {
+      background-color: #2196f3;
+      color: white;
+    }
+    
+    .reagendada {
+      background-color: #ff9800;
+      color: white;
+    }
+    
+    .cancelada, .no-asistió {
+      background-color: #bd2121;
+      color: white;
+    }
+
+    .si-asistió, .si-asistio {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .no-asistió, .no-asistio {
+      background-color: #bd2121;
+      color: white;
+    }
+
+    .pendiente {
+      background-color: #ffa500;
+      color: white;
+    }
+
+    .si {
+      background-color: #ffa500;
+      color: white;
+    }
+
+    .no {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    /* Estilos para modales */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .modal h3 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .modal label {
+      display: block;
+      margin-top: 0.8rem;
+      margin-bottom: 0.3rem;
+      font-weight: bold;
+      color: var(--gris-oscuro);
+    }
+
+    .modal input, .modal select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: var(--gris-claro);
+      color: #333;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gris-oscuro);
+    }
+
+    .modal-close:hover {
+      color: #dc3545;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .actions button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: bold;
+      min-width: 60px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-edit {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    .btn-cancel {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .actions button:disabled {
+      background-color: var(--gris-claro);
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    .actions-cell {
+      text-align: center;
+      vertical-align: middle;
+      padding: 0.5rem;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--azul-claro);
+      background-color: white;
+      color: var(--azul-claro);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    .pagination button:disabled {
+      background-color: var(--gris-claro);
+      color: #999;
+      border-color: var(--gris-claro);
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header>
+    <h1>SCAH</h1>
+    <div id="navbar-container"></div>
+  </header>
+
+  <!-- Contenido principal -->
+  <div class="container">
+    <!-- Sidebar filtros -->
+    <aside class="sidebar">
+      <h3>Filtros</h3>
+      <label for="cedula">Buscar por Cédula</label>
+      <input type="text" id="cedula" placeholder="Ingrese la cédula" />
+
+      <label for="medico">Médico</label>
+      <select id="medico">
+        <option value="Todos">Todos</option>
+      </select>
+
+      <label for="paciente">Paciente</label>
+      <select id="paciente">
+        <option value="Todos">Todos</option>
+      </select>
+
+      <label for="fecha">Fecha</label>
+      <input type="date" id="fecha" />
+
+      <label for="estado">Estado</label>
+      <select id="estado">
+        <option value="Todos">Todos</option>
+        <option value="Programada">Programada</option>
+        <option value="Confirmada">Confirmada</option>
+        <option value="Reagendada">Reagendada</option>
+        <option value="Cancelada">Cancelada</option>
+        <option value="No asistió">No asistió</option>
+        <option value="Atendida">Atendida</option>
+      </select>
+
+    </aside>
+
+    <!-- Tabla de citas -->
+    <section class="content">
+      <h2>Citas</h2>
+      <div style="margin-bottom: 1rem;">
+        <span id="contadorCitas">0</span> citas encontradas
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Paciente</th>
+            <th>Médico</th>
+            <th>Especialidad</th>
+            <th>Estado</th>
+            <th>Asistencia</th>
+            <th>¿Fue Reprogramada?</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCitas">
+          <!-- Citas se llenan por JavaScript -->
+        </tbody>
+      </table>
+      
+      <!-- Paginación -->
+      <div class="pagination">
+        <button id="prevPagina" disabled>Anterior</button>
+        <span>Página <span id="paginaActual">1</span> de <span id="totalPaginas">1</span></span>
+        <button id="nextPagina" disabled>Siguiente</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal para editar cita -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="cerrarModal('modalEditar')">&times;</button>
+      <h3>Editar Cita</h3>
+      <form id="formEditar">
+        <input type="hidden" id="editarIdCita">
+        
+        <label>Fecha:</label>
+        <input type="date" id="editarFecha" required>
+        
+        <label>Hora:</label>
+        <input type="time" id="editarHora" required>
+        
+        <label>Especialidad:</label>
+        <select id="editarEspecialidad" required>
+          <option value="">Seleccione una especialidad</option>
+        </select>
+        
+        <label>Médico:</label>
+        <select id="editarMedico" required>
+          <option value="">Seleccione un médico</option>
+        </select>
+        
+        <div class="modal-buttons">
+          <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para confirmar cancelación -->
+  <div id="modalCancelar" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="cerrarModal('modalCancelar')">&times;</button>
+      <h3>Confirmar Cancelación</h3>
+      <p>¿Está seguro que desea cancelar la cita de <strong id="nombreCancelar"></strong>?</p>
+      <p style="color: #dc3545; font-size: 0.9rem;">Esta acción no se puede deshacer.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn-secondary" onclick="cerrarModal('modalCancelar')">No</button>
+        <button type="button" class="btn-danger" onclick="confirmarCancelacion()">Sí, Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let paginaActual = 1;
+    let totalPaginas = 1;
+    let idCitaCancelar = null;
+    
+    // Referencias a elementos DOM
+    const tablaCitas = document.getElementById('tablaCitas');
+    const contadorCitas = document.getElementById('contadorCitas');
+    const paginaSpan = document.getElementById('paginaActual');
+    const totalPaginasSpan = document.getElementById('totalPaginas');
+    const prevBtn = document.getElementById('prevPagina');
+    const nextBtn = document.getElementById('nextPagina');
+    
+    // Elementos de filtros
+    const filtros = {
+      cedula: document.getElementById('cedula'),
+      medico: document.getElementById('medico'),
+      paciente: document.getElementById('paciente'),
+      fecha: document.getElementById('fecha'),
+      estado: document.getElementById('estado')
+    };
+
+    // Cargar citas
+    async function cargarCitas() {
+      const params = new URLSearchParams({
+        pagina: paginaActual,
+        cedula: filtros.cedula.value,
+        medico: filtros.medico.value,
+        paciente: filtros.paciente.value,
+        fecha: filtros.fecha.value,
+        estado: filtros.estado.value
+      });
+
+      try {
+        const response = await fetch(`/api/citas/listar?${params.toString()}`);
+        const data = await response.json();
+        
+        if (response.ok) {
+          mostrarCitas(data.citas);
+          actualizarPaginacion(data);
+        } else {
+          console.error('Error al cargar citas:', data.message);
+          alert('Error al cargar citas');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error de conexión');
+      }
+    }
+
+    // Mostrar citas en la tabla
+    function mostrarCitas(citas) {
+      tablaCitas.innerHTML = '';
+      
+      citas.forEach(cita => {
+        const fechaCita = new Date(cita.fecha_cita);
+        const hoy = new Date();
+        const puedeEditar = fechaCita > hoy && cita.estado !== 'Cancelada';
+        const puedeCancelar = fechaCita > hoy && cita.estado !== 'Cancelada' && cita.estado !== 'Atendida';
+        
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+          <td>${formatearFecha(cita.fecha_cita)}</td>
+          <td>${formatearHora(cita.hora_cita)}</td>
+          <td>${cita.nombre_paciente}</td>
+          <td>${cita.nombre_medico}</td>
+          <td>${cita.especialidad}</td>
+          <td><span class="status ${cita.estado.toLowerCase().replace(' ', '-')}">${cita.estado}</span></td>
+          <td><span class="status ${cita.asistencia.toLowerCase().replace(' ', '-')}">${cita.asistencia}</span></td>
+          <td><span class="status ${cita.fue_reprogramada.toLowerCase()}">${cita.fue_reprogramada}</span></td>
+          <td class="actions-cell">
+            <div class="actions">
+              <button class="btn-edit" onclick="abrirModalEditar(${cita.id_cita}, '${cita.fecha_cita}', '${cita.hora_cita}', '${cita.cedula_paciente}', '${cita.cedula_medico}')" ${!puedeEditar ? 'disabled' : ''}>Editar</button>
+              <button class="btn-cancel" onclick="abrirModalCancelar(${cita.id_cita}, '${cita.nombre_paciente}', '${formatearFecha(cita.fecha_cita)}')" ${!puedeCancelar ? 'disabled' : ''}>Cancelar</button>
+            </div>
+          </td>
+        `;
+        tablaCitas.appendChild(fila);
+      });
+    }
+
+    // Actualizar información de paginación
+    function actualizarPaginacion(data) {
+      contadorCitas.textContent = data.total;
+      paginaActual = data.pagina;
+      totalPaginas = data.totalPaginas;
+      paginaSpan.textContent = paginaActual;
+      totalPaginasSpan.textContent = totalPaginas;
+      
+      prevBtn.disabled = paginaActual === 1;
+      nextBtn.disabled = paginaActual >= totalPaginas;
+    }
+
+    // Cargar datos para filtros
+    async function cargarDatosFiltros() {
+      try {
+        const response = await fetch('/api/citas/filtros');
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Llenar select de médicos
+          filtros.medico.innerHTML = '<option value="Todos">Todos</option>';
+          data.medicos.forEach(medico => {
+            const option = document.createElement('option');
+            option.value = medico.cedula;
+            option.textContent = medico.nombre_completo;
+            filtros.medico.appendChild(option);
+          });
+          
+          // Llenar select de pacientes
+          filtros.paciente.innerHTML = '<option value="Todos">Todos</option>';
+          data.pacientes.forEach(paciente => {
+            const option = document.createElement('option');
+            option.value = paciente.cedula;
+            option.textContent = paciente.nombre_completo;
+            filtros.paciente.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('Error al cargar datos de filtros:', error);
+      }
+    }
+
+    // Event listeners para filtros
+    Object.values(filtros).forEach(filtro => {
+      filtro.addEventListener('change', () => {
+        paginaActual = 1;
+        cargarCitas();
+      });
+      
+      if (filtro.type === 'text') {
+        filtro.addEventListener('input', debounce(() => {
+          paginaActual = 1;
+          cargarCitas();
+        }, 500));
+      }
+    });
+
+    // Event listeners para paginación
+    prevBtn.addEventListener('click', () => {
+      if (paginaActual > 1) {
+        paginaActual--;
+        cargarCitas();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      if (paginaActual < totalPaginas) {
+        paginaActual++;
+        cargarCitas();
+      }
+    });
+
+    // Funciones de modal
+    async function abrirModalEditar(idCita, fecha, hora, cedulaPaciente, cedulaMedico) {
+      document.getElementById('editarIdCita').value = idCita;
+      document.getElementById('editarFecha').value = fecha;
+      document.getElementById('editarHora').value = hora;
+      
+      // Cargar opciones de especialidades y médicos
+      await cargarOpcionesModal();
+      
+      // Obtener especialidad del médico actual y preseleccionarla
+      const response = await fetch('/api/citas/filtros');
+      const data = await response.json();
+      if (response.ok) {
+        const medicoActual = data.medicos.find(m => m.cedula === cedulaMedico);
+        if (medicoActual) {
+          document.getElementById('editarEspecialidad').value = medicoActual.especialidad;
+          // Filtrar médicos por especialidad seleccionada
+          filtrarMedicosPorEspecialidad(medicoActual.especialidad);
+          document.getElementById('editarMedico').value = cedulaMedico;
+        }
+      }
+      
+      document.getElementById('modalEditar').style.display = 'block';
+    }
+
+    async function cargarOpcionesModal() {
+      try {
+        const response = await fetch('/api/citas/filtros');
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Llenar select de especialidades
+          const selectEspecialidad = document.getElementById('editarEspecialidad');
+          selectEspecialidad.innerHTML = '<option value="">Seleccione una especialidad</option>';
+          data.especialidades.forEach(esp => {
+            const option = document.createElement('option');
+            option.value = esp.especialidad;
+            option.textContent = esp.especialidad;
+            selectEspecialidad.appendChild(option);
+          });
+          
+          // Llenar select de médicos (inicialmente vacío)
+          const selectMedico = document.getElementById('editarMedico');
+          selectMedico.innerHTML = '<option value="">Seleccione un médico</option>';
+          
+          // Almacenar todos los médicos para filtrar después
+          window.todosMedicos = data.medicos;
+          
+          // Event listener para filtrar médicos por especialidad
+          selectEspecialidad.addEventListener('change', function() {
+            const especialidadSeleccionada = this.value;
+            filtrarMedicosPorEspecialidad(especialidadSeleccionada);
+          });
+        }
+      } catch (error) {
+        console.error('Error al cargar opciones del modal:', error);
+      }
+    }
+    
+    function filtrarMedicosPorEspecialidad(especialidad) {
+      const selectMedico = document.getElementById('editarMedico');
+      selectMedico.innerHTML = '<option value="">Seleccione un médico</option>';
+      
+      if (especialidad && window.todosMedicos) {
+        const medicosFiltrados = window.todosMedicos.filter(m => m.especialidad === especialidad);
+        medicosFiltrados.forEach(medico => {
+          const option = document.createElement('option');
+          option.value = medico.cedula;
+          option.textContent = medico.nombre_completo;
+          selectMedico.appendChild(option);
+        });
+      }
+    }
+    
+    // Función para verificar cupos disponibles
+    async function verificarCupoDisponible(fecha, hora, cedulaMedico) {
+      try {
+        const response = await fetch(`/api/citas/verificar-cupos?fecha=${fecha}&hora=${hora}&cedula_medico=${cedulaMedico}`);
+        const data = await response.json();
+        return data.disponible;
+      } catch (error) {
+        console.error('Error al verificar cupo:', error);
+        return false;
+      }
+    }
+
+    function abrirModalCancelar(idCita, nombrePaciente, fecha) {
+      idCitaCancelar = idCita;
+      document.getElementById('nombreCancelar').textContent = `${nombrePaciente} (${fecha})`;
+      document.getElementById('modalCancelar').style.display = 'block';
+    }
+
+    function cerrarModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Manejar formulario de editar
+    document.getElementById('formEditar').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const fecha = document.getElementById('editarFecha').value;
+      const hora = document.getElementById('editarHora').value;
+      const cedulaMedico = document.getElementById('editarMedico').value;
+      
+      // Verificar que el médico tenga cupo disponible
+      const cupoDisponible = await verificarCupoDisponible(fecha, hora, cedulaMedico);
+      
+      if (!cupoDisponible) {
+        alert('El médico seleccionado no tiene cupo disponible para esa fecha y hora');
+        return;
+      }
+      
+      const datos = {
+        fecha_cita: fecha,
+        hora_cita: hora,
+        cedula_medico: cedulaMedico
+      };
+      
+      const idCita = document.getElementById('editarIdCita').value;
+      
+      try {
+        const response = await fetch(`/api/citas/editar/${idCita}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(datos)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('Cita actualizada correctamente');
+          cerrarModal('modalEditar');
+          cargarCitas();
+        } else {
+          alert(result.message || 'Error al actualizar cita');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar cita');
+      }
+    });
+
+    // Confirmar cancelación
+    async function confirmarCancelacion() {
+      try {
+        const response = await fetch(`/api/citas/cancelar/${idCitaCancelar}`, {
+          method: 'PUT'
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('Cita cancelada correctamente');
+          cerrarModal('modalCancelar');
+          cargarCitas();
+        } else {
+          alert(result.message || 'Error al cancelar cita');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cancelar cita');
+      }
+    }
+
+    // Funciones auxiliares
+    function formatearFecha(fecha) {
+      return new Date(fecha).toLocaleDateString('es-ES');
+    }
+
+    function formatearHora(hora) {
+      return hora.substring(0, 5);
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Cerrar modal al hacer click fuera de él
+    window.onclick = function(event) {
+      const modales = document.querySelectorAll('.modal');
+      modales.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarDatosFiltros();
+      cargarCitas();
+    });
+
+    // Función de verificación de autenticación
+    async function verificarAutenticacion() {
+      try {
+        const response = await fetch('/api/auth/verificar-sesion');
+        const data = await response.json();
+        
+        if (!response.ok || data.rol !== 'administrativo') {
+          window.location.replace('../vista_general/loginRegistrarse.html');
+          return;
+        }
+      } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        window.location.replace('../vista_general/loginRegistrarse.html');
+      }
+    }
+  </script>
+
+    <script type="module">
+    import { cargarNavbar } from '../navbar/navbarAdmin.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
+
+</body>
+</html>

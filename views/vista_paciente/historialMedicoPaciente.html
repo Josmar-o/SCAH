@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Historial Médico - SCAH</title>
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
-
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('paciente');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -27,6 +29,7 @@
       font-family: 'Questrial', sans-serif;
       background-color: #f7f9fb;
       color: #333;
+      padding-top: 80px; /* Añade espacio arriba para compensar el header fijo */
     }
 
     header {
@@ -36,6 +39,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed; /* Hace que el header se quede fijo */
+      top: 0; /* Lo posiciona en la parte superior */
+      left: 0; /* Lo posiciona desde el lado izquierdo */
+      right: 0; /* Lo extiende hasta el lado derecho */
+      z-index: 1001; /* Asegura que esté por encima de otros elementos */
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Añade una sombra sutil */
     }
 
     header h1 {
@@ -54,62 +63,313 @@
       text-decoration: underline;
     }
 
-    main {
+    .container {
       max-width: 1200px;
-      margin: 3rem auto;
+      margin: 2rem auto;
       padding: 2rem;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-    h2 {
-      font-family: 'Libre Baskerville', serif;
-      color: var(--azul);
+    .page-header {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       margin-bottom: 2rem;
       text-align: center;
     }
 
+    .page-header h2 {
+      font-family: 'Libre Baskerville', serif;
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--gris-claro);
+    }
+
+    .section-header h3 {
+      font-size: 1.5rem;
+      color: var(--gris-oscuro);
+      margin: 0;
+    }
+
+    .contador-citas {
+      background-color: var(--gris-oscuro);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      margin-left: auto;
+    }
+
     .historial {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.5rem;
     }
 
-    .card {
-      background-color: var(--celeste);
-      padding: 1.5rem;
+    .cita {
+      background-color: white;
+      border-left: 6px solid var(--gris-oscuro);
       border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      padding: 1.5rem;
+      transition: 0.3s;
+      position: relative;
+      opacity: 0.9;
+      cursor: pointer;
     }
 
-    .card:hover {
-      transform: scale(1.02);
+    .cita:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      opacity: 1;
     }
 
-    .card h3 {
-      margin-bottom: 0.5rem;
+    .cita-tag {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: var(--gris-oscuro);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .cita h3 {
+      font-size: 1.3rem;
       color: var(--azul);
+      margin-bottom: 1rem;
+      margin-right: 80px;
+    }
+
+    .cita p {
+      margin-bottom: 0.5rem;
+      color: var(--gris-oscuro);
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .cita p strong {
+      color: var(--azul);
+      font-weight: 600;
+    }
+
+    .click-info {
+      text-align: center;
+      margin-top: 1rem;
+      padding: 0.5rem;
+      background-color: var(--celeste);
+      color: var(--azul);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .estado {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .estado-programada { background-color: var(--azul-claro); color: white; }
+    .estado-confirmada { background-color: #4caf50; color: white; }
+    .estado-reagendada { background-color: #ff9800; color: white; }
+    .estado-cancelada { background-color: #f44336; color: white; }
+    .estado-no-asistio { background-color: #9e9e9e; color: white; }
+    .estado-atendida { background-color: #2e7d32; color: white; }
+
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 6% auto;
+      padding: 0;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      background-color: var(--azul);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 15px 15px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .close {
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .close:hover {
+      opacity: 0.7;
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .info-section {
+      margin-bottom: 2rem;
+    }
+
+    .info-section h4 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      border-bottom: 2px solid var(--celeste);
+      padding-bottom: 0.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-item {
+      background-color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--azul-claro);
+    }
+
+    .info-item strong {
+      color: var(--azul);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    .info-full {
+      background-color: #f8f9fa;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--azul-claro);
+      margin-bottom: 1rem;
+    }
+
+    .info-full strong {
+      color: var(--azul);
+      display: block;
+      margin-bottom: 0.5rem;
       font-size: 1.1rem;
     }
 
-    .card p {
-      margin: 0.3rem 0;
-      color: #222;
+    .no-historial {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--gris-oscuro);
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border: 2px dashed var(--gris-claro);
+      grid-column: 1 / -1;
     }
-    .card ul {
-  margin-top: 0.5rem;
-  padding-left: 1.2rem;
-  list-style-type: disc;
-  color: #333;
-}
 
-.card ul li {
-  margin-bottom: 0.4rem;
-  font-size: 0.95rem;
-}
-    
+    .no-historial-icon {
+      font-size: 4rem;
+      color: var(--gris-claro);
+      margin-bottom: 1rem;
+    }
+
+    .no-historial h4 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: var(--gris-oscuro);
+      background-color: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      grid-column: 1 / -1;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--gris-claro);
+      border-top: 4px solid var(--azul-claro);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .btn {
+      display: inline-block;
+      background-color: var(--azul-claro);
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .btn:hover {
+      background-color: var(--azul);
+      transform: translateY(-2px);
+    }
 
     footer {
       text-align: center;
@@ -119,96 +379,463 @@
     }
 
     @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        position: fixed; /* Mantiene fijo en móvil también */
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+      }
+
       nav {
         margin-top: 1rem;
       }
 
-      header {
-        flex-direction: column;
-        align-items: flex-start;
+      body {
+        padding-top: 120px; /* Más espacio en móvil porque el header es más alto */
+      }
+
+      .container {
+        padding: 1rem;
+      }
+
+      .historial {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 95%;
+        margin: 10% auto;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
 </head>
-<body>
 
+<body>
   <!-- Navbar -->
   <header>
     <h1>SCAH</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Mis Citas</a>
-      <a href="#">Agendar</a>
-      <a href="#">Historial</a>
-      <a href="#">Perfil</a>
-      <a href="#">Cerrar Sesión</a>
-    </nav>
+    <div id="navbar-container"></div>
   </header>
 
-  <!-- Contenido principal -->
-  <main>
-    <h2>Historial Médico -nombrePaciente-</h2>
-
-    <div class="historial">
-      <div class="card">
-        <h3>Consulta con Dr. Ricardo Díaz</h3>
-        <p><strong>Especialidad:</strong> Medicina General</p>
-        <p><strong>Fecha:</strong> 12/04/2025</p>
-        <p><strong>Observaciones:</strong> Revisión general, presión arterial alta. Recetado enalapril.</p>
-      </div>
-
-      <div class="card">
-        <h3>Consulta con Dra. María González</h3>
-        <p><strong>Especialidad:</strong> Dermatología</p>
-        <p><strong>Fecha:</strong> 05/03/2025</p>
-        <p><strong>Observaciones:</strong> Tratamiento para dermatitis. Aplicar crema dos veces al día.</p>
-      </div>
-
-      <div class="card">
-        <h3>Consulta con Dr. Juan Pérez</h3>
-        <p><strong>Especialidad:</strong> Pediatría</p>
-        <p><strong>Fecha:</strong> 20/01/2025</p>
-        <p><strong>Observaciones:</strong> Revisión de rutina. Todo en orden.</p>
-      </div>
-
-      <!-- Puedes añadir más registros aquí -->
-      <div class="card">
-        <h3>Consulta con Dr. Ricardo Díaz</h3>
-        <p><strong>Especialidad:</strong> Medicina General</p>
-        <p><strong>Fecha:</strong> 12/04/2025</p>
-        <p><strong>Observaciones:</strong> Revisión general, presión arterial alta. Recetado enalapril.</p>
-        <p><strong>Recetas:</strong></p>
-        <ul>
-          <li>Enalapril 10mg - Tomar 1 tableta cada 12 horas</li>
-          <li>Control de presión semanal</li>
-        </ul>
-      </div>
-      
-      <div class="card">
-        <h3>Consulta con Dra. María González</h3>
-        <p><strong>Especialidad:</strong> Dermatología</p>
-        <p><strong>Fecha:</strong> 05/03/2025</p>
-        <p><strong>Observaciones:</strong> Tratamiento para dermatitis. Aplicar crema dos veces al día.</p>
-        <p><strong>Recetas:</strong></p>
-        <ul>
-          <li>Crema tópica antiinflamatoria - Aplicar cada 12 horas</li>
-        </ul>
-      </div>
-      
-      <div class="card">
-        <h3>Consulta con Dr. Juan Pérez</h3>
-        <p><strong>Especialidad:</strong> Pediatría</p>
-        <p><strong>Fecha:</strong> 20/01/2025</p>
-        <p><strong>Observaciones:</strong> Revisión de rutina. Todo en orden.</p>
-        <!-- No hay recetas para esta consulta -->
-      </div>
-      
+  <div class="container">
+    <div class="page-header">
+      <h2>Historial Médico</h2>
+      <p style="color: var(--gris-oscuro); margin: 0;">Consulta tus citas médicas anteriores</p>
     </div>
-  </main>
+
+    <div class="section-header">
+      <span style="font-size: 2rem;">📋</span>
+      <h3>Citas Anteriores</h3>
+      <span class="contador-citas" id="contadorHistorial">0</span>
+    </div>
+
+    <div class="historial" id="historialContainer">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando tu historial médico...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para detalles de atención -->
+  <div id="modalAtencion" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Detalles de Atención Médica</h3>
+        <span class="close">&times;</span>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Cargando información...</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer>
     Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
   </footer>
 
+  <script>
+    let datosUsuario = null;
+
+    // Verificar autenticación
+    async function verificarAutenticacion() {
+      try {
+        console.log('🔍 Verificando autenticación en historial...');
+        
+        const response = await fetch('/api/auth/datos-usuario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}) // El middleware usará req.session.cedula
+        });
+
+        console.log('📡 Respuesta del servidor:', response.status);
+
+        if (response.status === 401) {
+          console.log('❌ No autenticado - redirigiendo al login');
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.ok) {
+          datosUsuario = await response.json();
+          console.log('✅ Usuario autenticado, cargando historial');
+          cargarHistorial();
+        }
+      } catch (error) {
+        console.error('❌ Error al verificar autenticación:', error);
+        window.location.href = '../vista_general/loginRegistrarse.html';
+      }
+    }
+
+    // Cargar historial médico
+    async function cargarHistorial() {
+      try {
+        const response = await fetch('/api/auth/historial-citas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}) // El middleware usará req.session.cedula
+        });
+
+        console.log('📡 Respuesta historial:', response.status);
+
+        if (response.status === 401) {
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          mostrarHistorial(data.citas);
+          console.log('✅ Historial cargado exitosamente');
+        }
+      } catch (error) {
+        console.error('Error al cargar el historial:', error);
+        document.getElementById('historialContainer').innerHTML = `
+          <div class="no-historial">
+            <div class="no-historial-icon">⚠️</div>
+            <h4>Error al cargar historial</h4>
+            <p>No se pudo cargar tu historial médico. Por favor, intenta nuevamente.</p>
+            <button class="btn" onclick="location.reload()">Intentar de nuevo</button>
+          </div>
+        `;
+      }
+    }
+
+    // Función para mostrar el historial
+    function mostrarHistorial(citas) {
+      const historialContainer = document.getElementById('historialContainer');
+      const contadorHistorial = document.getElementById('contadorHistorial');
+      
+      // DEBUG temporal
+      console.log('📅 Fecha actual:', new Date().toLocaleString());
+      
+      if (citas && citas.length > 0) {
+        console.log('📋 Citas en historial:', citas);
+        
+        citas.forEach((cita, index) => {
+          const tiempoAtras = tiempoTranscurrido(cita.fecha_cita, cita.hora_cita);
+          console.log(`Cita ${index + 1}:`, {
+            fecha: cita.fecha_cita,
+            hora: cita.hora_cita,
+            tiempoCalculado: tiempoAtras
+          });
+        });
+        
+        contadorHistorial.textContent = citas.length;
+        historialContainer.innerHTML = '';
+
+        citas.forEach(cita => {
+          const tiempoAtras = tiempoTranscurrido(cita.fecha_cita, cita.hora_cita);
+          
+          const citaElement = document.createElement('div');
+          citaElement.className = 'cita';
+          citaElement.onclick = () => abrirModalAtencion(cita.numero_tiquete);
+          
+          citaElement.innerHTML = `
+            <div class="cita-tag">${tiempoAtras}</div>
+            <h3>Consulta Médica</h3>
+            <p><strong>📅 Fecha:</strong> ${formatearFecha(cita.fecha_cita)}</p>
+            <p><strong>🕐 Hora:</strong> ${formatearHora(cita.hora_cita)}</p>
+            <p><strong>👨‍⚕️ Médico:</strong> ${cita.medico_nombre || 'No asignado'}</p>
+            <p><strong>🏥 Especialidad:</strong> ${cita.especialidad || 'No especificada'}</p>
+            <p><strong>📋 Estado:</strong> <span class="estado ${getEstadoClass(cita.estado)}">${cita.estado}</span></p>
+            <p><strong>🎫 Tiquete:</strong> ${cita.numero_tiquete}</p>
+            <div class="click-info">🔍 Click para ver detalles médicos</div>
+          `;
+          historialContainer.appendChild(citaElement);
+        });
+      } else {
+        contadorHistorial.textContent = '0';
+        historialContainer.innerHTML = `
+          <div class="no-historial">
+            <div class="no-historial-icon">📋</div>
+            <h4>Sin historial médico</h4>
+            <p>Aún no tienes citas anteriores registradas.</p>
+            <a href="formularioCita.html" class="btn">Agendar tu primera cita</a>
+          </div>
+        `;
+      }
+    }
+
+    // Función para abrir modal con detalles de atención
+    async function abrirModalAtencion(numeroTiquete) {
+      const modal = document.getElementById('modalAtencion');
+      const modalBody = document.getElementById('modalBody');
+      
+      modal.style.display = 'block';
+      
+      modalBody.innerHTML = `
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          <p>Cargando información detallada...</p>
+        </div>
+      `;
+      
+      try {
+        const response = await fetch('/api/auth/detalle-atencion-tiquete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ numero_tiquete: numeroTiquete })
+        });
+
+        if (response.status === 401) {
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.atencion) {
+            const atencion = data.atencion;
+            modalBody.innerHTML = `
+              <div class="info-section">
+                <h4>📅 Información de la Cita</h4>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <strong>Fecha:</strong>
+                    ${formatearFecha(atencion.fecha_cita)}
+                  </div>
+                  <div class="info-item">
+                    <strong>Hora:</strong>
+                    ${formatearHora(atencion.hora_cita)}
+                  </div>
+                  <div class="info-item">
+                    <strong>Tiquete:</strong>
+                    ${atencion.numero_tiquete}
+                  </div>
+                  <div class="info-item">
+                    <strong>Estado:</strong>
+                    <span class="estado ${getEstadoClass(atencion.estado)}">${atencion.estado}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-section">
+                <h4>👨‍⚕️ Información del Médico</h4>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <strong>Médico:</strong>
+                    ${atencion.medico_nombre}
+                  </div>
+                  <div class="info-item">
+                    <strong>Especialidad:</strong>
+                    ${atencion.especialidad}
+                  </div>
+                  <div class="info-item">
+                    <strong>Fecha de Atención:</strong>
+                    ${formatearFechaHora(atencion.fecha_atencion)}
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-section">
+                <h4>🩺 Diagnóstico</h4>
+                <div class="info-full">
+                  <strong>Diagnóstico:</strong>
+                  ${atencion.diagnostico || 'No se registró diagnóstico específico.'}
+                </div>
+              </div>
+
+              <div class="info-section">
+                <h4>📝 Observaciones Médicas</h4>
+                <div class="info-full">
+                  <strong>Observaciones:</strong>
+                  ${atencion.observacion || 'No se registraron observaciones adicionales.'}
+                </div>
+              </div>
+
+              <div class="info-section">
+                <h4>💊 Prescripciones</h4>
+                <div class="info-full">
+                  <strong>Medicamentos y Tratamiento:</strong>
+                  ${atencion.prescripcion || 'No se prescribieron medicamentos.'}
+                </div>
+              </div>
+            `;
+          } else {
+            modalBody.innerHTML = `
+              <div class="no-historial">
+                <div class="no-historial-icon">❌</div>
+                <h4>Sin información detallada</h4>
+                <p>No se encontró información detallada de atención para el tiquete: ${numeroTiquete}</p>
+              </div>
+            `;
+          }
+        }
+      } catch (error) {
+        console.error('Error al cargar detalles:', error);
+        modalBody.innerHTML = `
+          <div class="no-historial">
+            <div class="no-historial-icon">⚠️</div>
+            <h4>Error al cargar</h4>
+            <p>No se pudieron cargar los detalles de la atención médica para el tiquete: ${numeroTiquete}</p>
+          </div>
+        `;
+      }
+    }
+
+    // Cerrar modal
+    document.addEventListener('click', function(event) {
+      const modal = document.getElementById('modalAtencion');
+      if (event.target === modal || event.target.classList.contains('close')) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Función para formatear la fecha
+    function formatearFecha(fecha) {
+      const [year, month, day] = fecha.split('-');
+      const fechaLocal = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      
+      const opciones = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+      };
+      return fechaLocal.toLocaleDateString('es-ES', opciones);
+    }
+
+    // Función para formatear la hora
+    function formatearHora(hora) {
+      return hora.substring(0, 5);
+    }
+
+    // Función para formatear fecha y hora completa
+    function formatearFechaHora(fechaHora) {
+      const fecha = new Date(fechaHora);
+      return fecha.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    // Función para obtener el color del estado
+    function getEstadoClass(estado) {
+      const estadoLower = estado.toLowerCase();
+      switch(estadoLower) {
+        case 'programada': return 'estado-programada';
+        case 'confirmada': return 'estado-confirmada';
+        case 'reagendada': return 'estado-reagendada';
+        case 'cancelada': return 'estado-cancelada';
+        case 'no asistió': return 'estado-no-asistio';
+        case 'atendida': return 'estado-atendida';
+        default: return '';
+      }
+    }
+
+    // Función para calcular hace cuánto tiempo fue la cita
+    function tiempoTranscurrido(fecha, hora) {
+      const ahora = new Date();
+      const [year, month, day] = fecha.split('-');
+      const [hour, minute] = hora.split(':');
+      
+      const fechaCita = new Date(
+        parseInt(year), 
+        parseInt(month) - 1,
+        parseInt(day), 
+        parseInt(hour), 
+        parseInt(minute)
+      );
+      
+      const diferencia = ahora - fechaCita;
+      const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+      
+      // Si es futuro (diferencia negativa), no debería estar en historial
+      if (diferencia < 0) return 'FUTURA';
+      
+      if (dias === 0) return 'HOY';
+      if (dias === 1) return 'AYER';
+      if (dias <= 7) return `HACE ${dias} DÍAS`;
+      
+      // Cálculo más preciso para semanas
+      if (dias <= 30) {
+        const semanas = Math.floor(dias / 7);
+        if (semanas === 1) return 'HACE 1 SEMANA';
+        if (semanas > 1) return `HACE ${semanas} SEMANAS`;
+      }
+      
+      // Cálculo más preciso para meses usando fechas reales
+      if (dias <= 365) {
+        const mesesDiferencia = calcularMesesDiferencia(fechaCita, ahora);
+        if (mesesDiferencia === 1) return 'HACE 1 MES';
+        if (mesesDiferencia > 1) return `HACE ${mesesDiferencia} MESES`;
+      }
+      
+      // Cálculo más preciso para años
+      const añosDiferencia = calcularAñosDiferencia(fechaCita, ahora);
+      if (añosDiferencia === 1) return 'HACE 1 AÑO';
+      return `HACE ${añosDiferencia} AÑOS`;
+    }
+
+    // Función auxiliar para calcular diferencia exacta en meses
+    function calcularMesesDiferencia(fechaInicio, fechaFin) {
+      let meses = (fechaFin.getFullYear() - fechaInicio.getFullYear()) * 12;
+      meses += fechaFin.getMonth() - fechaInicio.getMonth();
+      
+      // Ajustar si el día del mes es menor
+      if (fechaFin.getDate() < fechaInicio.getDate()) {
+        meses--;
+      }
+      
+      return Math.max(0, meses);
+    }
+
+    // Función auxiliar para calcular diferencia exacta en años
+    function calcularAñosDiferencia(fechaInicio, fechaFin) {
+      let años = fechaFin.getFullYear() - fechaInicio.getFullYear();
+      
+      // Ajustar si aún no ha pasado el cumpleaños de la fecha
+      if (fechaFin.getMonth() < fechaInicio.getMonth() || 
+          (fechaFin.getMonth() === fechaInicio.getMonth() && fechaFin.getDate() < fechaInicio.getDate())) {
+        años--;
+      }
+      
+      return Math.max(0, años);
+    }
+
+  
+  </script>
+
+    <script type="module">
+    import { cargarNavbar } from '../navbar/navbar.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
 </body>
 </html>

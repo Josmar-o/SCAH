@@ -4,27 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login / Registro - SCAH</title>
-
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet">
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Questrial', sans-serif;
       background: #f1f5f9;
       color: #333;
     }
-
-    .container {
+    .spinner {
       display: flex;
-      height: 100vh;
+      justify-content: center;
+      align-items: center;
+      margin: 10px auto;
+      width: 100%;
+      text-align: center;
     }
-
+    .input-error {
+      border: 2px solid #d32f2f !important;
+    }
+    
+    .container { display: flex; height: 100vh; }
     .left-panel {
       flex: 1;
       background-color: #004f98;
@@ -35,20 +36,17 @@
       align-items: center;
       padding: 3rem;
     }
-
     .left-panel h1 {
       font-family: 'Libre Baskerville', serif;
       font-size: 2.5rem;
       margin-bottom: 1rem;
     }
-
     .left-panel p {
       font-size: 1.1rem;
       text-align: center;
       line-height: 1.6;
       max-width: 400px;
     }
-
     .right-panel {
       flex: 1;
       display: flex;
@@ -58,7 +56,6 @@
       padding: 2rem;
       background: white;
     }
-
     .form-box {
       width: 100%;
       max-width: 400px;
@@ -67,22 +64,29 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       border: 1px solid #c8c7c9;
-    }
+      transition: box-shadow 0.3s ease;
 
+      display: flex;
+      flex-direction: column;
+
+      /* 🔒 Lo importante para evitar desbordes */
+      overflow-x: hidden;
+      overflow-y: auto;
+      max-height: 90vh;
+    }
+    
     .form-box h2 {
       text-align: center;
       margin-bottom: 1.5rem;
       color: #004f98;
       font-family: 'Libre Baskerville', serif;
     }
-
     .form-box label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: bold;
     }
-
-    .form-box input {
+    .form-box input, .form-box textarea {
       width: 100%;
       padding: 0.75rem;
       margin-bottom: 1rem;
@@ -90,7 +94,6 @@
       border-radius: 6px;
       font-size: 1rem;
     }
-
     .form-box button {
       width: 100%;
       background-color: #2d93d5;
@@ -102,11 +105,15 @@
       cursor: pointer;
       transition: background 0.3s ease;
     }
-
-    .form-box button:hover {
-      background-color: #004f98;
+    textarea {
+      width: 100%;
+      max-width: 100%;
+      resize: vertical;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
+    .form-box button:hover { background-color: #004f98; }
     .toggle-link {
       margin-top: 1rem;
       text-align: center;
@@ -114,128 +121,593 @@
       cursor: pointer;
       font-size: 0.95rem;
     }
-
-    .toggle-link:hover {
-      text-decoration: underline;
-    }
-
+    
+    .toggle-link:hover { text-decoration: underline; }
     @media (max-width: 900px) {
-      .container {
-        flex-direction: column;
+      .container { flex-direction: column; }
+      .left-panel { display: none; }
+      .form-box { max-width: 100%; padding: 1.5rem; overflow: visible; max-height: none;}
+    }
+    @media (max-width: 600px) {
+      .form-box input,
+      .form-box textarea {
+        font-size: 0.95rem;
+        padding: 0.65rem;
       }
-      .left-panel {
-        display: none;
+      .form-box h2 { font-size: 1.4rem; }
+      .form-box button {
+        font-size: 1rem;
+        padding: 0.7rem;
       }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="left-panel">
       <h1>SCAH</h1>
       <p>Sistema de Citas y Atención Hospitalaria. Accede a tus citas, consulta tu historial y mantén el control de tu salud.</p>
     </div>
-
     <div class="right-panel">
       <div class="form-box" id="formLogin">
         <h2>Iniciar Sesión</h2>
         <label for="email">Correo electrónico</label>
         <input type="email" id="email" placeholder="ejemplo@correo.com" />
-
         <label for="password">Contraseña</label>
         <input type="password" id="password" placeholder="********" />
-
         <button>Ingresar</button>
-
+        <div id="mensajeLogin" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿No tienes cuenta? Regístrate</div>
+        <div class="toggle-link" onclick="mostrarRecuperar()">¿Olvidaste tu contraseña?</div>
       </div>
 
       <div class="form-box" id="formRegister" style="display: none;">
         <h2>Registro de Paciente</h2>
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" placeholder="Juan Pérez" />
-
+        <label for="cedula">Cédula/Pasaporte</label>
+        <input type="text" id="cedula" required placeholder="Ej: 8-123-456, PE-123-456, E-123-456"/>
+        <small style="color: #666; font-size: 0.85em; margin-top: -8px; margin-bottom: 12px; display: block;">
+          💡 <strong>Debes ingresar los guiones manualmente.</strong><br>
+          Formatos válidos: 1-123-456 (hasta 13-xxxx-xxxxx), PE-xxxx-xxxxx, E-xxxx-xxxxxx, N-xxxx-xxxx, 1AV-xxxx-xxxxx (hasta 13AV), 1PI-xxxx-xxxxx (hasta 13PI)
+        </small>
+        <label for="primer_nombre">Primer Nombre</label>
+        <input type="text" id="primer_nombre" required />
+        <label for="segundo_nombre">Segundo Nombre</label>
+        <input type="text" id="segundo_nombre" />
+        <label for="primer_apellido">Primer Apellido</label>
+        <input type="text" id="primer_apellido" required />
+        <label for="segundo_apellido">Segundo Apellido</label>
+        <input type="text" id="segundo_apellido" />
+        <label for="fecha_nacimiento">Fecha de Nacimiento</label>
+        <input type="date" id="fecha_nacimiento" required />
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" required placeholder="12345678"/>
         <label for="emailRegister">Correo electrónico</label>
-        <input type="email" id="emailRegister" placeholder="ejemplo@correo.com" />
-
-        <label for="cedula">Número de identificación</label>
-        <input type="text" id="cedula" placeholder="123456789" />
-
+        <input type="email" id="emailRegister" required placeholder="usuario@correo.com"/>
+        <label for="direccion">Dirección</label>
+        <textarea id="direccion" rows="3"></textarea>
         <label for="passwordRegister">Contraseña</label>
-        <input type="password" id="passwordRegister" placeholder="********" />
-
+        <input type="password" id="passwordRegister" required />
+        <label for="confirmPasswordRegister">Confirmar Contraseña</label>
+        <input type="password" id="confirmPasswordRegister" required />
+        <small style="color: #666; font-size: 0.85em; margin-top: -8px; margin-bottom: 12px; display: block;">
+          🔒 <strong>Requisitos de contraseña:</strong><br>
+          • Entre 8 y 16 caracteres<br>
+          • Al menos 1 número<br>
+          • Al menos 1 símbolo (!@#$%^&*()_+-=[]{}|;:,.<>?)
+        </small>
         <button>Registrarse</button>
-
+        <div id="mensajeRegister" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿Ya tienes cuenta? Inicia sesión</div>
+      </div>
+
+      <div class="form-box" id="formRecuperar" style="display: none;">
+        <h2>Recuperar Contraseña</h2>
+        <label for="emailRecuperar">Correo electrónico</label>
+        <input type="email" id="emailRecuperar" placeholder="usuario@correo.com" required />
+        <button id="btnRecuperar">Enviar enlace</button>
+        <div id="spinner" class="spinner" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" stroke="#2d93d5" stroke-width="4" fill="none" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 20 20" to="360 20 20"/>
+            </circle>
+          </svg>
+        </div>
+        <div id="mensajeRecuperar" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
+        <div class="toggle-link" onclick="mostrarLogin()">Volver a iniciar sesión</div>
       </div>
     </div>
   </div>
 
   <script>
-    function toggleForm() {
-      const login = document.getElementById("formLogin");
-      const register = document.getElementById("formRegister");
-      if (login.style.display === "none") {
-        login.style.display = "block";
-        register.style.display = "none";
-      } else {
-        login.style.display = "none";
-        register.style.display = "block";
+    const telefonoInput = document.getElementById('telefono');
+    //mascara de teléfono
+    telefonoInput.addEventListener('input', function (e) {
+      let value = this.value.replace(/\D/g, '');
+      value = value.slice(0, 8);
+      if (value.length > 4) {
+        value = value.slice(0, 4) + '-' + value.slice(4);
       }
-    }
-  </script>
+      this.value = value;
+    });
 
-<script>
+    // Función para validar cédula/pasaporte panameño
+    function validarCedulaPanama(cedula) {
+      if (!cedula || cedula.trim() === '') {
+        return { valida: false, mensaje: 'Cédula/pasaporte es requerido' };
+      }
+
+      const cedulaLimpia = cedula.trim().toUpperCase();
+      
+      // Verificar que tenga exactamente 2 guiones
+      const guiones = (cedulaLimpia.match(/-/g) || []).length;
+      if (guiones !== 2) {
+        return { valida: false, mensaje: 'La cédula/pasaporte debe tener exactamente 2 guiones (-)' };
+      }
+
+      // Regular: 1-xxxx-xxxxx hasta 13-xxxx-xxxxx
+      const regexRegular = /^([1-9]|1[0-3])-(\d{1,4})-(\d{1,5})$/;
+      
+      // Panameño nacido en el extranjero: PE-xxxx-xxxxx
+      const regexPE = /^PE-(\d{1,4})-(\d{1,5})$/;
+      
+      // Extranjero con cédula: E-xxxx-xxxxxx
+      const regexExtranjero = /^E-(\d{1,4})-(\d{1,6})$/;
+      
+      // Naturalizado: N-xxxx-xxxx
+      const regexNaturalizado = /^N-(\d{1,4})-(\d{1,4})$/;
+      
+      // Panameños nacidos antes de la vigencia: 1AV-xxxx-xxxxx hasta 13AV-xxxx-xxxxx
+      const regexAntesVigencia = /^([1-9]|1[0-3])AV-(\d{1,4})-(\d{1,5})$/;
+      
+      // Población indígena: 1PI-xxxx-xxxxx hasta 13PI-xxxx-xxxxx
+      const regexIndigena = /^([1-9]|1[0-3])PI-(\d{1,4})-(\d{1,5})$/;
+
+      if (regexRegular.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula regular válida', tipo: 'Regular' };
+      }
+      
+      if (regexPE.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula de panameño nacido en el extranjero válida', tipo: 'PE' };
+      }
+      
+      if (regexExtranjero.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula de extranjero válida', tipo: 'Extranjero' };
+      }
+      
+      if (regexNaturalizado.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula de naturalizado válida', tipo: 'Naturalizado' };
+      }
+      
+      if (regexAntesVigencia.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula de panameño nacido antes de la vigencia válida', tipo: 'Antes de vigencia' };
+      }
+      
+      if (regexIndigena.test(cedulaLimpia)) {
+        return { valida: true, mensaje: 'Cédula de población indígena válida', tipo: 'Población indígena' };
+      }
+
+      // Mensajes de error específicos
+      if (/^\d+-/.test(cedulaLimpia)) {
+        const numero = parseInt(cedulaLimpia.split('-')[0]);
+        if (numero > 13) {
+          return { valida: false, mensaje: 'Las cédulas regulares solo pueden empezar del 1 al 13' };
+        }
+      }
+      
+      if (/^\d+AV-/.test(cedulaLimpia)) {
+        const numero = parseInt(cedulaLimpia.split('AV-')[0]);
+        if (numero > 13 || numero < 1) {
+          return { valida: false, mensaje: 'Las cédulas AV (antes de vigencia) solo pueden empezar del 1AV al 13AV' };
+        }
+      }
+      
+      if (/^\d+PI-/.test(cedulaLimpia)) {
+        const numero = parseInt(cedulaLimpia.split('PI-')[0]);
+        if (numero > 13 || numero < 1) {
+          return { valida: false, mensaje: 'Las cédulas PI (población indígena) solo pueden empezar del 1PI al 13PI' };
+        }
+      }
+
+      return { 
+        valida: false, 
+        mensaje: 'Formato no válido. Usa: 1-123-456 (1-13), PE-123-456, E-123-456789, N-123-456, 1AV-123-456 (1-13AV), 1PI-123-456 (1-13PI)' 
+      };
+    }
+
+    // Función para validar contraseña
+    function validarContrasena(password, confirmPassword = null) {
+      const errores = [];
+      
+      // Validar longitud
+      if (password.length < 8) {
+        errores.push('Debe tener al menos 8 caracteres');
+      }
+      if (password.length > 16) {
+        errores.push('No puede tener más de 16 caracteres');
+      }
+      
+      // Validar que tenga al menos un número
+      if (!/\d/.test(password)) {
+        errores.push('Debe contener al menos 1 número');
+      }
+      
+      // Validar que tenga al menos un símbolo
+      if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
+        errores.push('Debe contener al menos 1 símbolo (!@#$%^&*()_+-=[]{}|;:,.<>?)');
+      }
+      
+      // Validar que las contraseñas coincidan (si se proporciona confirmación)
+      if (confirmPassword !== null && password !== confirmPassword) {
+        errores.push('Las contraseñas no coinciden');
+      }
+      
+      return {
+        valida: errores.length === 0,
+        errores: errores,
+        mensaje: errores.length === 0 ? 'Contraseña válida' : errores.join(', ')
+      };
+    }
+
+    // Validación en tiempo real
+    const cedulaInput = document.getElementById('cedula');
+    let timeoutValidacion;
+    
+    // Agregar estilos CSS para feedback visual
+    const style = document.createElement('style');
+    style.textContent = `
+      .input-valid {
+        border: 2px solid #388e3c !important;
+        background-color: #f1f8e9 !important;
+      }
+      .input-invalid {
+        border: 2px solid #d32f2f !important;
+        background-color: #ffebee !important;
+      }
+      .cedula-feedback {
+        font-size: 0.8em;
+        margin-top: -8px;
+        margin-bottom: 8px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: none;
+      }
+      .feedback-valid {
+        color: #2e7d32;
+        background-color: #e8f5e8;
+        border: 1px solid #4caf50;
+      }
+      .feedback-invalid {
+        color: #d32f2f;
+        background-color: #ffebee;
+        border: 1px solid #f44336;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Crear div para feedback
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.className = 'cedula-feedback';
+    feedbackDiv.id = 'cedula-feedback';
+    cedulaInput.parentNode.insertBefore(feedbackDiv, cedulaInput.nextSibling);
+    
+    // Filtro de entrada: solo números, guiones y letras permitidas
+    cedulaInput.addEventListener('keypress', function(e) {
+      const char = e.key.toUpperCase();
+      const currentValue = this.value;
+      
+      // Permitir solo números, guiones y letras específicas (P, E, A, N, V, I)
+      const allowedChars = ['0','1','2','3','4','5','6','7','8','9','-','A','E','I','N','P','V'];
+      
+      if (!allowedChars.includes(char)) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Contar guiones actuales
+      const currentDashes = (currentValue.match(/-/g) || []).length;
+      
+      // Si ya hay 2 guiones, no permitir más
+      if (char === '-' && currentDashes >= 2) {
+        e.preventDefault();
+        return false;
+      }
+      
+      // Permitir todas las letras, la validación contextual se hará después
+      // Esto permite mayor flexibilidad al usuario
+    });
+    
+    // También filtrar en el evento input para pegado de texto
+    cedulaInput.addEventListener('input', function() {
+      let value = this.value;
+      
+      // Convertir a mayúsculas automáticamente
+      value = value.toUpperCase();
+      
+      // Filtrar caracteres no permitidos usando replace con función
+      value = value.replace(/./g, function(char) {
+        const allowedChars = ['0','1','2','3','4','5','6','7','8','9','-','A','E','I','N','P','V'];
+        return allowedChars.includes(char) ? char : '';
+      });
+      
+      // Contar guiones y limitar a máximo 2
+      const dashCount = (value.match(/-/g) || []).length;
+      if (dashCount > 2) {
+        let dashesFound = 0;
+        value = value.replace(/-/g, function(match) {
+          dashesFound++;
+          return dashesFound <= 2 ? match : '';
+        });
+      }
+      
+      // Actualizar el valor si cambió
+      if (this.value !== value) {
+        this.value = value;
+      }
+      
+      // Continuar con la validación en tiempo real
+      clearTimeout(timeoutValidacion);
+      
+      // Remover clases previas
+      this.classList.remove('input-valid', 'input-invalid');
+      feedbackDiv.style.display = 'none';
+      
+      const valor = value.trim();
+      
+      if (valor.length > 2) {
+        timeoutValidacion = setTimeout(() => {
+          const resultado = validarCedulaPanama(valor);
+          
+          if (resultado.valida) {
+            cedulaInput.classList.add('input-valid');
+            feedbackDiv.className = 'cedula-feedback feedback-valid';
+            feedbackDiv.textContent = `✓ ${resultado.mensaje}`;
+            feedbackDiv.style.display = 'block';
+          } else {
+            cedulaInput.classList.add('input-invalid');
+            feedbackDiv.className = 'cedula-feedback feedback-invalid';
+            feedbackDiv.textContent = `✗ ${resultado.mensaje}`;
+            feedbackDiv.style.display = 'block';
+          }
+        }, 500);
+      }
+    });
+
+    // Evento para el botón de recuperar contraseña
+    function mostrarRecuperar() {
+    document.getElementById('formLogin').style.display = 'none';
+    document.getElementById('formRegister').style.display = 'none';
+    document.getElementById('formRecuperar').style.display = 'block';
+  }
+
+  // Evento para mostrar el formulario de login
+  function mostrarLogin() {
+    document.getElementById('formLogin').style.display = 'block';
+    document.getElementById('formRegister').style.display = 'none';
+    document.getElementById('formRecuperar').style.display = 'none';
+  }
+
+  //Función para alternar entre los formularios de login y registro
+  function toggleForm() {
+    const login = document.getElementById("formLogin");
+    const register = document.getElementById("formRegister");
+    login.style.display = login.style.display === "none" ? "block" : "none";
+    register.style.display = register.style.display === "none" ? "block" : "none";
+  }
+  
+  //función para manejar el login
   async function handleLogin() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
+    const mensajeDiv = document.getElementById('mensajeLogin');
+    mensajeDiv.textContent = ''; // Limpiar mensaje anterior
+
+    // Validación de campos
+    if (!email || !password) {
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = 'Por favor, completa todos los campos.';
+      return;
+      }
+
 
     const response = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ correo: email, contrasena: password }),
     });
-
     const data = await response.json();
     if (response.ok) {
-      alert('Login exitoso');
-      // Aquí puedes redirigir al usuario a la página principal o dashboard
-    } else {
-      alert(data.message);
+      mensajeDiv.style.color = '#388e3c';
+      mensajeDiv.textContent = 'Login exitoso';
+          if (data.user && data.user.rol) {
+            if (data.user.rol === 'paciente') {
+              setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente.html'); }, 2000);
+            } else if (data.user.rol === 'medico') {
+              setTimeout(() => { window.location.replace('../vista_medico/vistaMedico.html'); }, 2000);
+            } else if (data.user.rol === 'administrativo') {
+              setTimeout(() => { window.location.replace('../vista_administrativo/dashboardAdministrativo.html'); }, 2000);
+            }
+          }else{
+          // Si no hay rol, redirige por defecto
+          setTimeout(() => { window.location.replace('home.html'); }, 2000);
+        }
+      } else {
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = data.message || 'Error al iniciar sesión';
     }
   }
 
+  //Función para manejar el registro
   async function handleRegister() {
-    const nombre = document.getElementById('nombre').value;
-    const email = document.getElementById('emailRegister').value;
-    const identificacion = document.getElementById('cedula').value;
-    const password = document.getElementById('passwordRegister').value;
+    // Obtén las referencias a los inputs
+  const cedulaInput = document.getElementById('cedula');
+  const primerNombreInput = document.getElementById('primer_nombre');
+  const segundoNombreInput = document.getElementById('segundo_nombre');
+  const primerApellidoInput = document.getElementById('primer_apellido');
+  const segundoApellidoInput = document.getElementById('segundo_apellido');
+  const fechaNacimientoInput = document.getElementById('fecha_nacimiento');
+  const telefonoInput = document.getElementById('telefono');
+  const correoInput = document.getElementById('emailRegister');
+  const direccionInput = document.getElementById('direccion');
+  const contrasenaInput = document.getElementById('passwordRegister');
+  const confirmarContrasenaInput = document.getElementById('confirmPasswordRegister');
 
+  // Obtén los valores
+  const cedula = cedulaInput.value.toUpperCase(); // Asegurar que esté en mayúsculas
+  const primer_nombre = primerNombreInput.value;
+  const segundo_nombre = segundoNombreInput.value;
+  const primer_apellido = primerApellidoInput.value;
+  const segundo_apellido = segundoApellidoInput.value;
+  const fecha_nacimiento = fechaNacimientoInput.value;
+  const telefono = telefonoInput.value;
+  const correo = correoInput.value;
+  const direccion = direccionInput.value;
+  const contrasena = contrasenaInput.value;
+  const confirmarContrasena = confirmarContrasenaInput.value;
+
+    const mensajeDiv = document.getElementById('mensajeRegister');
+    mensajeDiv.textContent = ''; // Limpiar mensaje anterior
+
+      // Quitar errores previos
+    cedulaInput.classList.remove('input-error');
+    primerNombreInput.classList.remove('input-error');
+    primerApellidoInput.classList.remove('input-error');
+    fechaNacimientoInput.classList.remove('input-error');
+    correoInput.classList.remove('input-error');
+    contrasenaInput.classList.remove('input-error');
+    confirmarContrasenaInput.classList.remove('input-error');
+    telefonoInput.classList.remove('input-error');
+
+    // Validación básica
+    let hasError = false;
+    if (!cedula) { cedulaInput.classList.add('input-error'); hasError = true; }
+    if (!primer_nombre) { primerNombreInput.classList.add('input-error'); hasError = true; }
+    if (!primer_apellido) { primerApellidoInput.classList.add('input-error'); hasError = true; }
+    if (!fecha_nacimiento) { fechaNacimientoInput.classList.add('input-error'); hasError = true; }
+    if (!correo) { correoInput.classList.add('input-error'); hasError = true; }
+    if (!contrasena) { contrasenaInput.classList.add('input-error'); hasError = true; }
+    if (!confirmarContrasena) { confirmarContrasenaInput.classList.add('input-error'); hasError = true; }
+    if (!telefono) { telefonoInput.classList.add('input-error'); hasError = true; }
+    
+    // Si hay algún error, mostrar mensaje y detener el registro
+    if (hasError) {
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = 'Por favor, completa todos los campos obligatorios.';
+      return;
+    }
+    
+    // Validación de cédula/pasaporte usando nuestra función personalizada
+    const resultadoValidacion = validarCedulaPanama(cedula);
+    if (!resultadoValidacion.valida) {
+      cedulaInput.classList.add('input-error');
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = resultadoValidacion.mensaje;
+      return;
+    }
+    
+    // Validación de email simple
+    if (!/\S+@\S+\.\S+/.test(correo)) {
+      correoInput.classList.add('input-error');
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = 'Correo electrónico no válido.';
+      return;
+    }
+    
+    // Validación de contraseña usando nuestra función personalizada
+    const resultadoContrasena = validarContrasena(contrasena, confirmarContrasena);
+    if (!resultadoContrasena.valida) {
+      contrasenaInput.classList.add('input-error');
+      if (contrasena !== confirmarContrasena) {
+        confirmarContrasenaInput.classList.add('input-error');
+      }
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = resultadoContrasena.mensaje;
+      return;
+    }
+
+    // Validación de teléfono (debe tener formato XXXX-XXXX)
+    const telefonoLimpio = telefono.replace(/\D/g, ''); // Remover todo lo que no sea número
+    if (telefonoLimpio.length < 8) {
+      telefonoInput.classList.add('input-error');
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = 'El teléfono debe tener al menos 8 dígitos.';
+      return;
+    }
+    
     const response = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        nombre,
-        correo: email,
-        contrasena: password,
-        identificacion,
-        rol: 'paciente', // Asumiendo que el rol por defecto es paciente
+        cedula, primer_nombre, segundo_nombre, primer_apellido,
+        segundo_apellido, fecha_nacimiento, telefono, correo,
+        direccion, contrasena
       }),
     });
-
     const data = await response.json();
     if (response.ok) {
-      alert('Registro exitoso');
-     //Redirigitar o manejar el éxito del registro
-      
+      mensajeDiv.style.color = '#388e3c';
+      mensajeDiv.textContent = 'Registro exitoso';
+      // Mostrar formulario de login y ocultar el de registro
+      document.getElementById('formRegister').style.display = 'none';
+      document.getElementById('formLogin').style.display = 'block';
+      setTimeout(() => location.reload(), 1000);// Recarga la página después de 1 segundo
     } else {
-      alert(data.message);
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = data.message || 'Error en el registro';
     }
   }
 
-  document.querySelector('#formLogin button').addEventListener('click', handleLogin);
-  document.querySelector('#formRegister button').addEventListener('click', handleRegister);
-</script>
+  // Función para manejar la recuperación de contraseña
+  async function handleRecuperar(e) {
+    e.preventDefault();
+    const email = document.getElementById('emailRecuperar').value;
+    const mensajeDiv = document.getElementById('mensajeRecuperar');
+    const spinner = document.getElementById('spinner');
+    const btnRecuperar = document.getElementById('btnRecuperar');
+    mensajeDiv.textContent = '';
+    mensajeDiv.style.color = '#d32f2f';
+
+    if (!email) {
+      mensajeDiv.textContent = 'Por favor, ingresa tu correo.';
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      mensajeDiv.textContent = 'Correo electrónico no válido.';
+      return;
+    }
+
+    spinner.style.display = 'block';
+    btnRecuperar.disabled = true;
+    const originalText = btnRecuperar.textContent;
+    btnRecuperar.textContent = 'Enviando...';
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email }),
+      });
+      const data = await response.json();
+      spinner.style.display = 'none'; // Ocultar spinner
+      btnRecuperar.disabled = false;
+      btnRecuperar.textContent = originalText;
+
+      if (response.ok) {
+        mensajeDiv.style.color = '#388e3c';
+        mensajeDiv.textContent = 'Si el correo existe, se ha enviado un enlace para restablecer la contraseña';
+      } else {
+        mensajeDiv.textContent = data.message || 'Error al enviar el correo.';
+      }
+    } catch (error) {
+      spinner.style.display = 'none';
+      btnRecuperar.disabled = false;
+      btnRecuperar.textContent = originalText;
+      mensajeDiv.textContent = 'Error de conexión';
+    }
+}
+
+    document.querySelector('#formLogin button').addEventListener('click', handleLogin);
+    document.querySelector('#formRegister button').addEventListener('click', handleRegister);
+    document.getElementById('btnRecuperar').addEventListener('click', handleRecuperar);
+  </script>
 </body>
 </html>

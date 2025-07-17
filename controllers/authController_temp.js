@@ -1,40 +1,12 @@
-const bcrypt = require('bcrypt'); //Se debe instalar antes de usarlo: npm install bcrypt
+﻿const bcrypt = require('bcrypt'); //Se debe instalar antes de usarlo: npm install bcrypt
 const nodemailer = require('nodemailer'); // Se debe instalar antes de usarlo: npm install nodemailer
 const crypto = require('crypto'); //Se debe instalar antes de usarlo: npm install crypto
 const multer = require('multer'); // Se debe instalar antes de usarlo: npm install multer
 const path = require('path'); //Modulo nativo de Node.js para manejar rutas de archivos
-const fs = require('fs'); // Módulo nativo de Node.js para manejar el sistema de archivos
+const fs = require('fs'); // MÃ³dulo nativo de Node.js para manejar el sistema de archivos
+const { validateCedula } = require('cedula-panama'); // LibrerÃ­a para validar cÃ©dulas y pasaportes panameÃ±os
 
-// Función para validar contraseña
-function validarContrasena(password) {
-  const errores = [];
-  
-  // Validar longitud
-  if (password.length < 8) {
-    errores.push('Debe tener al menos 8 caracteres');
-  }
-  if (password.length > 16) {
-    errores.push('No puede tener más de 16 caracteres');
-  }
-  
-  // Validar que tenga al menos un número
-  if (!/\d/.test(password)) {
-    errores.push('Debe contener al menos 1 número');
-  }
-  
-  // Validar que tenga al menos un símbolo
-  if (!/[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)) {
-    errores.push('Debe contener al menos 1 símbolo (!@#$%^&*()_+-=[]{}|;:,.<>?)');
-  }
-  
-  return {
-    valida: errores.length === 0,
-    errores: errores,
-    mensaje: errores.length === 0 ? 'Contraseña válida' : errores.join(', ')
-  };
-}
-
-// Configuración de multer para subir archivos
+// ConfiguraciÃ³n de multer para subir archivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, '../uploads/fotos');
@@ -63,7 +35,7 @@ const upload = multer({
   }
 });
 
-// Función para subir foto
+// FunciÃ³n para subir foto
 exports.subirFoto = (req, res, connection) => {
 upload.single('foto')(req, res, (err) => {
     if (err) {
@@ -73,7 +45,7 @@ upload.single('foto')(req, res, (err) => {
     const cedula = req.session.cedula;
     const fotoUrl = `/uploads/fotos/${req.file.filename}`;
 
-    // ✅ PRIMERO: Obtener la foto anterior para eliminarla
+    // âœ… PRIMERO: Obtener la foto anterior para eliminarla
     connection.query(
     'SELECT foto_perfil FROM Paciente WHERE cedula = ?',
     [cedula],
@@ -85,7 +57,7 @@ upload.single('foto')(req, res, (err) => {
 
         const fotoAnterior = results[0]?.foto_perfil;
 
-        // ✅ SEGUNDO: Actualizar en la base de datos
+        // âœ… SEGUNDO: Actualizar en la base de datos
         connection.query(
         'UPDATE Paciente SET foto_perfil = ? WHERE cedula = ?',
         [fotoUrl, cedula],
@@ -95,7 +67,7 @@ upload.single('foto')(req, res, (err) => {
             return res.status(500).json({ message: 'Error al guardar la foto' });
             }
 
-            // ✅ TERCERO: Eliminar la foto anterior del disco (si existe)
+            // âœ… TERCERO: Eliminar la foto anterior del disco (si existe)
             if (fotoAnterior) {
             const fotoAnteriorPath = path.join(__dirname, '..', fotoAnterior);
             fs.unlink(fotoAnteriorPath, (err) => {
@@ -114,7 +86,7 @@ upload.single('foto')(req, res, (err) => {
 });
 };
 
-// Función para eliminar foto
+// FunciÃ³n para eliminar foto
 exports.eliminarFoto = (req, res, connection) => {
 const cedula = req.session.cedula;
 
@@ -144,15 +116,15 @@ connection.query(
             return res.status(500).json({ message: 'Error al eliminar la foto' });
         }
         
-        // ✅ ELIMINAR archivo físico
+        // âœ… ELIMINAR archivo fÃ­sico
         if (fotoActual) {
             const filePath = path.join(__dirname, '..', fotoActual);
             fs.unlink(filePath, (err) => {
             if (err) {
-                console.error('Error al eliminar archivo físico:', err);
+                console.error('Error al eliminar archivo fÃ­sico:', err);
                 // No retornar error, continuar con la respuesta
             } else {
-                console.log('✅ Archivo eliminado exitosamente:', filePath);
+                console.log('âœ… Archivo eliminado exitosamente:', filePath);
             }
             });
         }
@@ -164,7 +136,7 @@ connection.query(
 );
 };
 
-// Función para obtener datos del usuario
+// FunciÃ³n para obtener datos del usuario
 exports.getPerfilUsuario = (req, res, connection) => {
   const cedula = req.session.cedula;
   
@@ -204,22 +176,22 @@ exports.login = (req, res, connection) => {
         }
 
         if (results.length === 0) {
-            return res.status(401).json({ message: 'Correo o contraseña incorrectos' });
+            return res.status(401).json({ message: 'Correo o contraseÃ±a incorrectos' });
         }
 
         const user = results[0];
         bcrypt.compare(contrasena, user.contrasena, (err, isMatch) => {
             if (err || !isMatch) {
-                return res.status(401).json({ message: 'Correo o contraseña incorrectos' });
+                return res.status(401).json({ message: 'Correo o contraseÃ±a incorrectos' });
             }
             
-            // AGREGAR LOGS AQUÍ:
+            // AGREGAR LOGS AQUÃ:
             
             req.session.cedula = user.cedula;
             req.session.correo = user.correo;
             req.session.rol = user.rol;
 
-            // VERIFICAR QUE SE GUARDÓ:
+            // VERIFICAR QUE SE GUARDÃ“:
 
             res.status(200).json({ message: 'Login exitoso', user });
         });
@@ -232,30 +204,6 @@ exports.register = (req, res, connection) => {
         segundo_apellido, fecha_nacimiento, telefono, correo,
         direccion, contrasena
     } = req.body;
-
-    // Validar que todos los campos obligatorios estén presentes
-    if (!cedula || !primer_nombre || !primer_apellido || !fecha_nacimiento || 
-        !telefono || !correo || !contrasena) {
-        return res.status(400).json({ 
-            message: 'Todos los campos obligatorios deben estar completos' 
-        });
-    }
-
-    // Validar formato de email
-    const emailRegex = /\S+@\S+\.\S+/;
-    if (!emailRegex.test(correo)) {
-        return res.status(400).json({ 
-            message: 'Formato de correo electrónico no válido' 
-        });
-    }
-
-    // Validar contraseña usando nuestra función
-    const resultadoContrasena = validarContrasena(contrasena);
-    if (!resultadoContrasena.valida) {
-        return res.status(400).json({ 
-            message: `Contraseña no válida: ${resultadoContrasena.mensaje}` 
-        });
-    }
 
     const insertarPaciente = `
         INSERT INTO Paciente (
@@ -277,31 +225,21 @@ exports.register = (req, res, connection) => {
     ], (err, result1) => {
         if (err) {
             console.error('Error al insertar paciente:', err);
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(400).json({ 
-                    message: 'Ya existe un paciente registrado con esta cédula o correo electrónico' 
-                });
-            }
             return res.status(500).json({ message: 'Error al registrar paciente' });
         }
         
-        // Encriptar la contraseña
+        // Encriptar la contraseÃ±a
         bcrypt.hash(contrasena, 10, (err, hash) => {
             if (err) {
-                return res.status(500).json({ message: 'Error al encriptar la contraseña' });
+                return res.status(500).json({ message: 'Error al encriptar la contraseÃ±a' });
             }
-            // Insertar usuario con la contraseña encriptada (hash)
+            // Insertar usuario con la contraseÃ±a encriptada (hash)
             connection.query(
                 insertarUsuario,
                 [cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, hash],
                 (err2, result2) => {
                     if (err2) {
                         console.error('Error al insertar usuario:', err2);
-                        if (err2.code === 'ER_DUP_ENTRY') {
-                            return res.status(400).json({ 
-                                message: 'Ya existe un usuario registrado con esta cédula o correo electrónico' 
-                            });
-                        }
                         return res.status(500).json({ message: 'Paciente creado, pero error al crear usuario' });
                     }
                     return res.status(200).json({ message: 'Registro exitoso' });
@@ -311,7 +249,7 @@ exports.register = (req, res, connection) => {
     });
 };
 
-// Función para manejar el envío de correo de recuperación de contraseña
+// FunciÃ³n para manejar el envÃ­o de correo de recuperaciÃ³n de contraseÃ±a
 exports.forgotPassword = (req, res, connection) => {
     const { correo } = req.body;
     connection.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, results) => {
@@ -321,14 +259,14 @@ exports.forgotPassword = (req, res, connection) => {
 
         // Siempre responde igual para no revelar si el correo existe o no
         if (results.length === 0) {
-            return res.json({ message: 'Si el correo existe, se ha enviado un enlace para restablecer la contraseña.' });
+            return res.json({ message: 'Si el correo existe, se ha enviado un enlace para restablecer la contraseÃ±a.' });
         }
 
         // 1. Generar token seguro
         const token = crypto.randomBytes(32).toString('hex');
         const tokenExpira = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
-        // 2. Guardar token y expiración en la base de datos (puedes crear campos en tu tabla usuarios)
+        // 2. Guardar token y expiraciÃ³n en la base de datos (puedes crear campos en tu tabla usuarios)
         connection.query(
             'UPDATE usuarios SET reset_token = ?, reset_expires = ? WHERE correo = ?',
             [token, tokenExpira, correo],
@@ -337,14 +275,14 @@ exports.forgotPassword = (req, res, connection) => {
                     return res.status(500).json({ message: 'Error al guardar el token.' });
                 }
 
-                // 3. Enviar correo con el enlace de recuperación
+                // 3. Enviar correo con el enlace de recuperaciÃ³n
                 const resetUrl = `http://localhost:3000/vista_general/reset-password.html?token=${token}`;
                 // Configuracion del transportador de nodemailer
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
                     auth: {
                         user: 'abdelbarbaebay@gmail.com', // Correo del remitente
-                        pass: 'upfo nxxm uaqk bifh' // Contraseña del remitente (app password si usas autenticación de dos factores)
+                        pass: 'upfo nxxm uaqk bifh' // ContraseÃ±a del remitente (app password si usas autenticaciÃ³n de dos factores)
 
                         //upfo nxxm uaqk bifh
                     }
@@ -353,35 +291,35 @@ exports.forgotPassword = (req, res, connection) => {
                 const mailOptions = {
                 from: '"SCAH" <abdelbarbaebay@gmail.com>',
                 to: correo,
-                subject: 'Recupera tu contraseña',
+                subject: 'Recupera tu contraseÃ±a',
                 html: `
                     <div style="font-family: 'Questrial', Arial, sans-serif; color: #333; background: #f9fafb; padding: 24px; border-radius: 8px; border: 1px solid #e0e0e0;">
-                        <h2 style="color: #004f98; margin-top: 0;">Solicitud de restablecimiento de contraseña</h2>
+                        <h2 style="color: #004f98; margin-top: 0;">Solicitud de restablecimiento de contraseÃ±a</h2>
                         <p>Hola,</p>
-                        <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en <b>SCAH</b>.</p>
-                        <p>Para crear una nueva contraseña, haz clic en el siguiente botón o copia y pega el enlace en tu navegador:</p>
+                        <p>Hemos recibido una solicitud para restablecer la contraseÃ±a de tu cuenta en <b>SCAH</b>.</p>
+                        <p>Para crear una nueva contraseÃ±a, haz clic en el siguiente botÃ³n o copia y pega el enlace en tu navegador:</p>
                         <p style="text-align: center; margin: 24px 0;">
-                            <a href="${resetUrl}" style="background: #2d93d5; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Restablecer contraseña</a>
+                            <a href="${resetUrl}" style="background: #2d93d5; color: #fff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold;">Restablecer contraseÃ±a</a>
                         </p>
                         <p style="word-break: break-all;">${resetUrl}</p>
-                        <p style="color: #d32f2f;"><b>Este enlace expirará en 1 hora.</b></p>
+                        <p style="color: #d32f2f;"><b>Este enlace expirarÃ¡ en 1 hora.</b></p>
                         <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
                         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 24px 0;">
-                        <p style="font-size: 0.95em; color: #888;">Este mensaje fue enviado automáticamente, por favor no respondas a este correo.</p>
+                        <p style="font-size: 0.95em; color: #888;">Este mensaje fue enviado automÃ¡ticamente, por favor no respondas a este correo.</p>
                     </div>
                 `
             };
 
                 transporter.sendMail(mailOptions, (error, info) => {
-                    // Siempre responde igual, aunque falle el envío
-                    return res.json({ message: 'Si el correo existe, se ha enviado un enlace para restablecer la contraseña.' });
+                    // Siempre responde igual, aunque falle el envÃ­o
+                    return res.json({ message: 'Si el correo existe, se ha enviado un enlace para restablecer la contraseÃ±a.' });
                 });
             }
         );
     });
 };
 
-//Función para restablecer la contraseña
+//FunciÃ³n para restablecer la contraseÃ±a
 exports.resetPassword = (req, res, connection) => {
     const { token, nueva } = req.body;
     // 1. Buscar usuario con ese token y que no haya expirado
@@ -390,19 +328,19 @@ exports.resetPassword = (req, res, connection) => {
         [token],
         (err, results) => {
             if (err) return res.status(500).json({ message: 'Error en el servidor.' });
-            if (results.length === 0) return res.status(400).json({ message: 'Token inválido o expirado.' });
+            if (results.length === 0) return res.status(400).json({ message: 'Token invÃ¡lido o expirado.' });
 
-            // 2. Encriptar la nueva contraseña
+            // 2. Encriptar la nueva contraseÃ±a
             bcrypt.hash(nueva, 10, (err, hash) => {
-                if (err) return res.status(500).json({ message: 'Error al encriptar la contraseña.' });
+                if (err) return res.status(500).json({ message: 'Error al encriptar la contraseÃ±a.' });
 
-                // 3. Actualizar contraseña y limpiar el token
+                // 3. Actualizar contraseÃ±a y limpiar el token
                 connection.query(
                     'UPDATE usuarios SET contrasena = ?, reset_token = NULL, reset_expires = NULL WHERE reset_token = ?',
                     [hash, token],
                     (err2) => {
-                        if (err2) return res.status(500).json({ message: 'Error al actualizar la contraseña.' });
-                        return res.json({ message: 'Contraseña restablecida con éxito.' });
+                        if (err2) return res.status(500).json({ message: 'Error al actualizar la contraseÃ±a.' });
+                        return res.json({ message: 'ContraseÃ±a restablecida con Ã©xito.' });
                     }
                 );
             });
@@ -410,16 +348,16 @@ exports.resetPassword = (req, res, connection) => {
     );
 };
 
-// Función para obtener los datos del usuario
+// FunciÃ³n para obtener los datos del usuario
 exports.getDatosUsuario = (req, res, connection) => {
     const cedula = req.session.cedula;
     const rol = req.session.rol;
 
     if (!cedula || !rol) {
-        return res.status(401).json({ message: 'Sesión no válida' });
+        return res.status(401).json({ message: 'SesiÃ³n no vÃ¡lida' });
     }
 
-    // Buscar en la tabla correspondiente según el rol
+    // Buscar en la tabla correspondiente segÃºn el rol
     let tabla = '';
     let camposSelect = '';
     
@@ -437,7 +375,7 @@ exports.getDatosUsuario = (req, res, connection) => {
             camposSelect = 'primer_nombre, primer_apellido, cedula, correo, cargo';
             break;
         default:
-            return res.status(400).json({ message: 'Rol no válido' });
+            return res.status(400).json({ message: 'Rol no vÃ¡lido' });
     }
 
     connection.query(
@@ -459,11 +397,11 @@ exports.getDatosUsuario = (req, res, connection) => {
     );
 };
 
-// Función para obtener las citas de un paciente
+// FunciÃ³n para obtener las citas de un paciente
 exports.getCitasPaciente = (req, res, connection) => {
     const cedula = req.session.cedula;
     
-    // Obtener las citas del paciente con datos del médico
+    // Obtener las citas del paciente con datos del mÃ©dico
     connection.query(`
         SELECT 
             c.id_cita,
@@ -490,7 +428,7 @@ exports.getCitasPaciente = (req, res, connection) => {
         const citasPasadas = [];
 
         citasResults.forEach(cita => {
-            // Crear la fecha de la cita de manera más explícita
+            // Crear la fecha de la cita de manera mÃ¡s explÃ­cita
             const [year, month, day] = cita.fecha_cita.split('-');
             const [hour, minute] = cita.hora_cita.split(':');
             
@@ -509,14 +447,14 @@ exports.getCitasPaciente = (req, res, connection) => {
             }
         });
 
-        // Ordenar citas futuras ascendente (más cercanas primero)
+        // Ordenar citas futuras ascendente (mÃ¡s cercanas primero)
         citasFuturas.sort((a, b) => {
             const fechaA = new Date(a.fecha_cita + 'T' + a.hora_cita);
             const fechaB = new Date(b.fecha_cita + 'T' + b.hora_cita);
             return fechaA - fechaB;
         });
         
-        // Ordenar citas pasadas descendente (más recientes primero)
+        // Ordenar citas pasadas descendente (mÃ¡s recientes primero)
         citasPasadas.sort((a, b) => {
             const fechaA = new Date(a.fecha_cita + 'T' + a.hora_cita);
             const fechaB = new Date(b.fecha_cita + 'T' + b.hora_cita);
@@ -530,7 +468,7 @@ exports.getCitasPaciente = (req, res, connection) => {
     });
 };
 
-// Función para obtener el historial de citas (solo pasadas)
+// FunciÃ³n para obtener el historial de citas (solo pasadas)
 
 exports.getHistorialCitas = (req, res, connection) => {
     const cedula = req.session.cedula;
@@ -550,7 +488,7 @@ exports.getHistorialCitas = (req, res, connection) => {
         WHERE c.cedula_paciente = ? 
         AND (
             CONCAT(c.fecha_cita, ' ', c.hora_cita) < NOW()
-            OR c.estado IN ('Atendida', 'No asistió')
+            OR c.estado IN ('Atendida', 'No asistiÃ³')
         )
         ORDER BY c.fecha_cita DESC, c.hora_cita DESC
     `, [cedula], (err, citasResults) => {
@@ -563,16 +501,16 @@ exports.getHistorialCitas = (req, res, connection) => {
 };
 
 
-// Función para obtener detalles de atención médica por número de tiquete
+// FunciÃ³n para obtener detalles de atenciÃ³n mÃ©dica por nÃºmero de tiquete
 exports.getDetalleAtencionPorTiquete = (req, res, connection) => {
     const { numero_tiquete } = req.body;
 
     // Verificar que el tiquete no sea undefined o null
     if (!numero_tiquete) {
-        return res.status(400).json({ message: 'Número de tiquete no proporcionado.' });
+        return res.status(400).json({ message: 'NÃºmero de tiquete no proporcionado.' });
     }
     
-    // Primero buscar el id_cita por el número de tiquete
+    // Primero buscar el id_cita por el nÃºmero de tiquete
     connection.query(
         'SELECT id_cita FROM Cita WHERE numero_tiquete = ?',
         [numero_tiquete],
@@ -583,12 +521,12 @@ exports.getDetalleAtencionPorTiquete = (req, res, connection) => {
             }
             
             if (citaResults.length === 0) {
-                return res.status(404).json({ message: 'No se encontró una cita con ese número de tiquete.' });
+                return res.status(404).json({ message: 'No se encontrÃ³ una cita con ese nÃºmero de tiquete.' });
             }
             
             const id_cita = citaResults[0].id_cita;
             
-            // Ahora buscar la atención médica con ese id_cita
+            // Ahora buscar la atenciÃ³n mÃ©dica con ese id_cita
             connection.query(`
                 SELECT 
                     am.id_atencion,
@@ -608,12 +546,12 @@ exports.getDetalleAtencionPorTiquete = (req, res, connection) => {
                 WHERE am.id_cita = ?
             `, [id_cita], (err, results) => {
                 if (err) {
-                    console.error('Error al obtener detalles de atención:', err);
-                    return res.status(500).json({ message: 'Error al obtener detalles de atención.' });
+                    console.error('Error al obtener detalles de atenciÃ³n:', err);
+                    return res.status(500).json({ message: 'Error al obtener detalles de atenciÃ³n.' });
                 }                
                 if (results.length === 0) {
                     return res.status(404).json({ 
-                        message: 'No se encontró información de atención para esta cita.',
+                        message: 'No se encontrÃ³ informaciÃ³n de atenciÃ³n para esta cita.',
                         numero_tiquete: numero_tiquete,
                         id_cita: id_cita
                     });
@@ -625,7 +563,7 @@ exports.getDetalleAtencionPorTiquete = (req, res, connection) => {
     );
 };
 
-// Función para actualizar perfil del paciente
+// FunciÃ³n para actualizar perfil del paciente
 exports.actualizarPerfil = (req, res, connection) => {
   const cedula = req.session.cedula;
   const { 
@@ -638,9 +576,9 @@ exports.actualizarPerfil = (req, res, connection) => {
     fecha_nacimiento 
   } = req.body;
   
-  // Iniciar transacción para asegurar consistencia
+  // Iniciar transacciÃ³n para asegurar consistencia
   connection.beginTransaction((err) => {
-    if (err) return res.status(500).json({ message: 'Error al iniciar transacción.' });
+    if (err) return res.status(500).json({ message: 'Error al iniciar transacciÃ³n.' });
 
     // 1. Actualizar en la tabla Paciente
     connection.query(
@@ -662,7 +600,7 @@ exports.actualizarPerfil = (req, res, connection) => {
           });
         }
         
-        // 2. También actualizar en la tabla usuarios para mantener sincronización
+        // 2. TambiÃ©n actualizar en la tabla usuarios para mantener sincronizaciÃ³n
         connection.query(
           `UPDATE usuarios SET 
            primer_nombre = ?, 
@@ -675,11 +613,11 @@ exports.actualizarPerfil = (req, res, connection) => {
             if (err2) {
               return connection.rollback(() => {
                 console.error('Error al actualizar perfil en usuarios:', err2);
-                return res.status(500).json({ message: 'Error al actualizar información del usuario.' });
+                return res.status(500).json({ message: 'Error al actualizar informaciÃ³n del usuario.' });
               });
             }
             
-            // Confirmar transacción
+            // Confirmar transacciÃ³n
             connection.commit((err3) => {
               if (err3) {
                 return connection.rollback(() => {
@@ -696,34 +634,34 @@ exports.actualizarPerfil = (req, res, connection) => {
   });
 };
 
-// Verificar sesión activa
+// Verificar sesiÃ³n activa
 exports.verificarSesion = (req, res) => {
-  if (!req.session || !req.session.cedula || !req.session.rol) {
+  if (!req.session.cedula) {
     return res.status(401).json({ 
-      message: 'No hay sesión activa',
-      autenticado: false
+      message: 'No hay sesiÃ³n activa',
+      isAuthenticated: false
     });
   }
   
   res.json({
-    message: 'Sesión activa',
-    autenticado: true,
+    message: 'SesiÃ³n activa',
+    isAuthenticated: true,
     cedula: req.session.cedula,
     rol: req.session.rol
   });
 };
 
-// Cerrar sesión
+// Cerrar sesiÃ³n
 exports.logout = (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ message: 'Error al cerrar sesión' });
+      return res.status(500).json({ message: 'Error al cerrar sesiÃ³n' });
     }
-    res.json({ message: 'Sesión cerrada exitosamente' });
+    res.json({ message: 'SesiÃ³n cerrada exitosamente' });
   });
 };
 
-// Función para verificar si un paciente existe por correo (para uso administrativo)
+// FunciÃ³n para verificar si un paciente existe por correo (para uso administrativo)
 exports.verificarPaciente = (req, res, connection) => {
   const { correo } = req.body;
 
@@ -744,7 +682,7 @@ exports.verificarPaciente = (req, res, connection) => {
       if (usuarioResults.length === 0) {
         return res.json({
           existe: false,
-          message: 'No se encontró un paciente registrado con este correo'
+          message: 'No se encontrÃ³ un paciente registrado con este correo'
         });
       }
 
@@ -768,7 +706,7 @@ exports.verificarPaciente = (req, res, connection) => {
           } else {
             res.json({
               existe: false,
-              message: 'No se encontró información del paciente'
+              message: 'No se encontrÃ³ informaciÃ³n del paciente'
             });
           }
         }
@@ -777,12 +715,12 @@ exports.verificarPaciente = (req, res, connection) => {
   );
 };
 
-// Función para verificar si un paciente existe por cédula (para uso administrativo)
+// FunciÃ³n para verificar si un paciente existe por cÃ©dula (para uso administrativo)
 exports.verificarPacienteCedula = (req, res, connection) => {
   const { cedula } = req.body;
 
   if (!cedula) {
-    return res.status(400).json({ message: 'La cédula es requerida' });
+    return res.status(400).json({ message: 'La cÃ©dula es requerida' });
   }
 
   // Primero buscar en la tabla usuarios para verificar que existe y es un paciente
@@ -798,7 +736,7 @@ exports.verificarPacienteCedula = (req, res, connection) => {
       if (usuarioResults.length === 0) {
         return res.json({
           existe: false,
-          message: 'No se encontró un paciente registrado con esta cédula'
+          message: 'No se encontrÃ³ un paciente registrado con esta cÃ©dula'
         });
       }
 
@@ -820,7 +758,7 @@ exports.verificarPacienteCedula = (req, res, connection) => {
           } else {
             res.json({
               existe: false,
-              message: 'No se encontró información del paciente'
+              message: 'No se encontrÃ³ informaciÃ³n del paciente'
             });
           }
         }

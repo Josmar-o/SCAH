@@ -8,6 +8,11 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
 
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('administrativo');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -146,6 +151,109 @@
     .actions button:hover {
       background-color: var(--azul);
     }
+
+    .actions button:disabled {
+      background-color: var(--gris-claro);
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    .actions button:disabled:hover {
+      background-color: var(--gris-claro);
+    }
+
+    /* Estilos para modales */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .modal h3 {
+      color: var(--azul);
+      margin-bottom: 1rem;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .modal label {
+      display: block;
+      margin-top: 0.8rem;
+      margin-bottom: 0.3rem;
+      font-weight: bold;
+      color: var(--gris-oscuro);
+    }
+
+    .modal input, .modal select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      justify-content: flex-end;
+    }
+
+    .modal-buttons button {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background-color: var(--azul-claro);
+      color: white;
+    }
+
+    .btn-secondary {
+      background-color: var(--gris-claro);
+      color: #333;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gris-oscuro);
+    }
+
+    .modal-close:hover {
+      color: #dc3545;
+    }
   </style>
 </head>
 <body>
@@ -153,13 +261,7 @@
   <!-- Navbar -->
   <header>
     <h1>SCAH</h1>
-    <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Citas</a>
-      <a href="#">Usuarios</a>
-      <a href="#">Estadísticas</a>
-      <a href="#">Cerrar Sesión</a>
-    </nav>
+    <div id="navbar-container"></div>
   </header>
 
   <!-- Contenido principal -->
@@ -174,12 +276,6 @@
         <option>Médico</option>
       </select>
 
-      <label for="estado">Estado</label>
-      <select id="estado">
-        <option>Activo</option>
-        <option>Inactivo</option>
-      </select>
-
       <label for="buscar">Buscar</label>
       <input type="text" id="buscar" placeholder="Buscar por nombre o cédula">
     </aside>
@@ -187,41 +283,249 @@
     <!-- Tabla de usuarios -->
     <section class="content">
       <h2>Usuarios Registrados</h2>
+      <div>
+        <span id="contadorUsuarios">0</span> usuarios encontrados
+      </div>
       <table>
         <thead>
           <tr>
             <th>Cédula</th>
             <th>Nombre</th>
             <th>Tipo</th>
-            <th>Estado</th>
+            <th>Correo</th>
             <th>Acciones</th>
           </tr>
         </thead>
-        <tbody>
-          <tr>
-            <td>12345678</td>
-            <td>Juan Pérez</td>
-            <td>Paciente</td>
-            <td><span class="status aprobada">Activo</span></td>
-            <td class="actions">
-              <button>Editar</button>
-              <button>Eliminar</button>
-            </td>
-          </tr>
-          <tr>
-            <td>87654321</td>
-            <td>Ana Ruiz</td>
-            <td>Médico</td>
-            <td><span class="status aprobada">Activo</span></td>
-            <td class="actions">
-              <button>Editar</button>
-              <button>Eliminar</button>
-            </td>
-          </tr>
+        <tbody id="tablaUsuarios">
+          <!-- Usuarios se llenan por JS -->
         </tbody>
       </table>
+      <div style="margin-top:1rem; display:flex; gap:1rem; align-items:center;">
+        <button id="prevPagina">Anterior</button>
+        <span>Página <span id="paginaActual">1</span></span>
+        <button id="nextPagina">Siguiente</button>
+      </div>
     </section>
   </div>
 
+  <!-- Modal para editar usuario -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="cerrarModal('modalEditar')">&times;</button>
+      <h3>Editar Usuario</h3>
+      <form id="formEditar">
+        <input type="hidden" id="editarCedula">
+        <label>Primer Nombre:</label>
+        <input type="text" id="editarPrimerNombre" required>
+        
+        <label>Segundo Nombre:</label>
+        <input type="text" id="editarSegundoNombre" placeholder="Opcional">
+        
+        <label>Primer Apellido:</label>
+        <input type="text" id="editarPrimerApellido" required>
+        
+        <label>Segundo Apellido:</label>
+        <input type="text" id="editarSegundoApellido" placeholder="Opcional">
+        
+        <label>Correo:</label>
+        <input type="email" id="editarCorreo" required>
+        <label>Tipo de Usuario:</label>
+        <select id="editarTipo" required>
+          <option value="paciente">Paciente</option>
+          <option value="medico">Médico</option>
+        </select>
+        <div class="modal-buttons">
+          <button type="button" class="btn-secondary" onclick="cerrarModal('modalEditar')">Cancelar</button>
+          <button type="submit" class="btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para confirmar eliminación -->
+  <div id="modalEliminar" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="cerrarModal('modalEliminar')">&times;</button>
+      <h3>Confirmar Eliminación</h3>
+      <p>¿Está seguro que desea eliminar al usuario <strong id="nombreEliminar"></strong>?</p>
+      <p style="color: #dc3545; font-size: 0.9rem;">Esta acción no se puede deshacer.</p>
+      <div class="modal-buttons">
+        <button type="button" class="btn-secondary" onclick="cerrarModal('modalEliminar')">Cancelar</button>
+        <button type="button" class="btn-danger" onclick="confirmarEliminacion()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
 </body>
+
+  <script>
+    let pagina = 1;
+    let tipo = 'Todos';
+    let buscar = '';
+
+    const tablaUsuarios = document.getElementById('tablaUsuarios');
+    const contadorUsuarios = document.getElementById('contadorUsuarios');
+    const paginaActual = document.getElementById('paginaActual');
+    const prevPagina = document.getElementById('prevPagina');
+    const nextPagina = document.getElementById('nextPagina');
+    const tipoUsuario = document.getElementById('tipo-usuario');
+    const buscarInput = document.getElementById('buscar');
+
+    // Cargar usuarios con paginación y filtros
+    async function cargarUsuarios() {
+      const params = new URLSearchParams({
+        pagina,
+        tipo: tipoUsuario.value,
+        buscar: buscarInput.value
+      });
+      const res = await fetch(`/api/usuarios/listar?${params.toString()}`);
+      const data = await res.json();
+      tablaUsuarios.innerHTML = '';
+      data.usuarios.forEach(u => {
+        const esAdmin = u.tipo === 'administrativo';
+        const nombreCompleto = `${u.primer_nombre || ''}${u.segundo_nombre ? ' ' + u.segundo_nombre : ''} ${u.primer_apellido || ''}${u.segundo_apellido ? ' ' + u.segundo_apellido : ''}`.trim();
+        tablaUsuarios.innerHTML += `
+          <tr>
+            <td>${u.cedula}</td>
+            <td>${nombreCompleto}</td>
+            <td>${u.tipo.charAt(0).toUpperCase() + u.tipo.slice(1)}</td>
+            <td>${u.correo}</td>
+            <td class="actions">
+              <button onclick="abrirModalEditar('${u.cedula}', '${u.primer_nombre || ''}', '${u.segundo_nombre || ''}', '${u.primer_apellido || ''}', '${u.segundo_apellido || ''}', '${u.correo}', '${u.tipo}')" ${esAdmin ? 'disabled' : ''}>Editar</button>
+              <button onclick="abrirModalEliminar('${u.cedula}', '${nombreCompleto}')" ${esAdmin ? 'disabled' : ''}>Eliminar</button>
+            </td>
+          </tr>
+        `;
+      });
+      contadorUsuarios.textContent = data.total;
+      paginaActual.textContent = pagina;
+      prevPagina.disabled = pagina === 1;
+      nextPagina.disabled = pagina * 20 >= data.total;
+    }
+
+    tipoUsuario.addEventListener('change', () => { pagina = 1; cargarUsuarios(); });
+    buscarInput.addEventListener('input', () => { pagina = 1; cargarUsuarios(); });
+    prevPagina.addEventListener('click', () => { if (pagina > 1) { pagina--; cargarUsuarios(); } });
+    nextPagina.addEventListener('click', () => { pagina++; cargarUsuarios(); });
+
+    document.addEventListener('DOMContentLoaded', cargarUsuarios);
+
+    // Variables para el modal de eliminar
+    let cedulaEliminar = '';
+
+    // Funciones para modales
+    function abrirModalEditar(cedula, primerNombre, segundoNombre, primerApellido, segundoApellido, correo, tipo) {
+      document.getElementById('editarCedula').value = cedula;
+      document.getElementById('editarPrimerNombre').value = primerNombre || '';
+      document.getElementById('editarSegundoNombre').value = segundoNombre || '';
+      document.getElementById('editarPrimerApellido').value = primerApellido || '';
+      document.getElementById('editarSegundoApellido').value = segundoApellido || '';
+      document.getElementById('editarCorreo').value = correo;
+      document.getElementById('editarTipo').value = tipo;
+      
+      document.getElementById('modalEditar').style.display = 'block';
+    }
+
+    function abrirModalEliminar(cedula, nombre) {
+      cedulaEliminar = cedula;
+      document.getElementById('nombreEliminar').textContent = nombre;
+      document.getElementById('modalEliminar').style.display = 'block';
+    }
+
+    function cerrarModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Cerrar modal al hacer click fuera de él
+    window.onclick = function(event) {
+      const modales = document.querySelectorAll('.modal');
+      modales.forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Manejar formulario de editar
+    document.getElementById('formEditar').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const cedula = document.getElementById('editarCedula').value;
+      const datos = {
+        primer_nombre: document.getElementById('editarPrimerNombre').value,
+        segundo_nombre: document.getElementById('editarSegundoNombre').value || null,
+        primer_apellido: document.getElementById('editarPrimerApellido').value,
+        segundo_apellido: document.getElementById('editarSegundoApellido').value || null,
+        correo: document.getElementById('editarCorreo').value,
+        rol: document.getElementById('editarTipo').value
+      };
+
+      try {
+        const response = await fetch(`/api/usuarios/editar/${cedula}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(datos)
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('Usuario actualizado correctamente');
+          cerrarModal('modalEditar');
+          cargarUsuarios();
+        } else {
+          alert(result.message || 'Error al actualizar usuario');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar usuario');
+      }
+    });
+
+    // Función para confirmar eliminación
+    async function confirmarEliminacion() {
+      try {
+        const response = await fetch(`/api/usuarios/eliminar/${cedulaEliminar}`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('Usuario eliminado correctamente');
+          cerrarModal('modalEliminar');
+          cargarUsuarios();
+        } else {
+          alert(result.message || 'Error al eliminar usuario');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar usuario');
+      }
+    }
+
+    // Cerrar sesión
+    document.querySelector('nav a:last-child').addEventListener('click', async function(e) {
+      e.preventDefault();
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+      }
+      window.location.replace('../vista_general/loginRegistrarse.html');
+    });
+  </script>
+
+    <script type="module">
+    import { cargarNavbar } from '../navbar/navbarAdmin.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacion();
+    });
+  </script>
 </html>

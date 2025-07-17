@@ -6,8 +6,16 @@
   <title>Perfil del Paciente - SCAH</title>
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@700&family=Questrial:wght@400;500;600&display=swap" rel="stylesheet" />
+  
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+  <script src="/views/verificarAcceso.js"></script>
+  <script>
+    initVerificacionAcceso('paciente');
+  </script>
+  
   <style>
     :root {
       --azul: #004f98;
@@ -15,6 +23,11 @@
       --celeste: #9bc1e4;
       --gris-claro: #c8c7c9;
       --gris-oscuro: #8a8381;
+      --verde: #28a745;
+      --azul-suave: #e3f2fd;
+      --sombra: 0 4px 20px rgba(0, 79, 152, 0.1);
+      --sombra-hover: 0 8px 30px rgba(0, 79, 152, 0.15);
+      --gradiente: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
     }
 
     * {
@@ -25,10 +38,13 @@
 
     body {
       font-family: 'Questrial', sans-serif;
-      background-color: #f1f4f8;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       color: #333;
+      padding-top: 80px;
+      line-height: 1.6;
     }
 
+    /* Header original mantenido */
     header {
       background-color: var(--azul);
       color: white;
@@ -36,6 +52,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1001;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     header h1 {
@@ -54,61 +76,339 @@
       text-decoration: underline;
     }
 
+    /* Contenido principal mejorado */
     main {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 3rem auto;
-      padding: 2rem;
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 0 2rem;
     }
 
-    h2 {
-      font-family: 'Libre Baskerville', serif;
-      color: var(--azul);
-      margin-bottom: 2rem;
+    /* Header del perfil */
+    .perfil-header {
+      background: var(--gradiente);
+      color: white;
+      padding: 3rem 2rem;
+      border-radius: 20px 20px 0 0;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .perfil-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .perfil-avatar {
+      width: 120px;
+      height: 120px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.5rem;
+      font-size: 3rem;
+      border: 4px solid rgba(255,255,255,0.3);
+      position: relative;
+      z-index: 1;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .perfil-avatar:hover {
+      transform: scale(1.05);
+      border-color: rgba(255,255,255,0.5);
+    }
+
+    .perfil-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* Overlay para cambiar foto */
+    .avatar-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 50%;
+    }
+
+    .perfil-avatar:hover .avatar-overlay {
+      opacity: 1;
+    }
+
+    .avatar-overlay i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .avatar-overlay span {
+      font-size: 0.8rem;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Botón para eliminar foto */
+    .btn-eliminar-foto {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 25px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 10;
+      display: inline-block;
+    }
+
+    .btn-eliminar-foto:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+    }
+
+    /* Loading para subida de foto */
+    .upload-loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      font-size: 1rem;
+    }
+
+    .upload-loading::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    .perfil-header h2 {
+      font-family: 'Libre Baskerville', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .perfil-subtitle {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Contenido del perfil */
+    .perfil-content {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 0 0 20px 20px;
+      box-shadow: var(--sombra);
     }
 
     .perfil-info {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 2rem;
     }
 
-    .perfil-info label {
-      font-weight: bold;
+    .info-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafe 100%);
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0, 79, 152, 0.1);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--gradiente);
+    }
+
+    .info-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--sombra-hover);
+    }
+
+    .info-card h3 {
       color: var(--azul);
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .perfil-info p {
-      background-color: var(--celeste);
-      padding: 0.7rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
-      color: #000;
+    .info-item {
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: rgba(155, 193, 228, 0.1);
+      border-radius: 10px;
+      border-left: 3px solid var(--azul-claro);
+      transition: all 0.3s ease;
     }
 
+    .info-item:hover {
+      background: rgba(155, 193, 228, 0.2);
+      transform: translateX(5px);
+    }
+
+    .info-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--azul);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .info-value {
+      font-size: 1.1rem;
+      color: #333;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    /* Sección de acciones mejorada */
     .acciones {
       text-align: center;
+      padding: 2rem;
+      background: var(--azul-suave);
+      border-radius: 15px;
       margin-top: 2rem;
     }
 
-    .acciones button {
-      background-color: var(--azul-claro);
+    .btn-principal {
+      background: var(--gradiente);
       color: white;
-      padding: 0.8rem 1.5rem;
+      padding: 1rem 2.5rem;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 15px rgba(0, 79, 152, 0.3);
+      position: relative;
+      overflow: hidden;
     }
 
-    .acciones button:hover {
-      background-color: var(--azul);
+    .btn-principal::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
     }
 
+    .btn-principal:hover::before {
+      left: 100%;
+    }
+
+    .btn-principal:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 79, 152, 0.4);
+    }
+
+    .btn-principal:active {
+      transform: translateY(-1px);
+    }
+
+    /* Loading state */
+    .loading {
+      color: var(--gris-oscuro);
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .loading::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--celeste);
+      border-top: 2px solid var(--azul);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Animación de entrada */
+    .fade-in {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Footer original mantenido */
     footer {
       text-align: center;
       padding: 2rem;
@@ -116,69 +416,808 @@
       color: var(--gris-oscuro);
     }
 
+    /* Responsive mejorado */
     @media (max-width: 768px) {
       .perfil-info {
         grid-template-columns: 1fr;
+        gap: 1.5rem;
       }
 
+      .perfil-header {
+        padding: 2rem 1rem;
+      }
+
+      .perfil-header h2 {
+        font-size: 2rem;
+      }
+
+      .perfil-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+      }
+
+      .info-card {
+        padding: 1.5rem;
+      }
+
+      /* Header responsive original */
       header {
         flex-direction: column;
         align-items: flex-start;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+      }
+
+      nav {
+        margin-top: 1rem;
+      }
+
+      body {
+        padding-top: 120px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      main {
+        padding: 0 1rem;
+      }
+
+      .perfil-content {
+        padding: 1.5rem;
+      }
+    }
+
+    /* Estilos para el modal */
+    .modal {
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 3% auto;
+      border-radius: 20px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: var(--sombra-hover);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-header {
+      background: var(--gradiente);
+      color: white;
+      padding: 2rem;
+      border-radius: 20px 20px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-family: 'Libre Baskerville', serif;
+    }
+
+    .close {
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.3s ease;
+      padding: 0.5rem;
+      border-radius: 50%;
+    }
+
+    .close:hover {
+      background: rgba(255,255,255,0.2);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 2.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--azul);
+      font-size: 0.95rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid var(--gris-claro);
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--azul-claro);
+      box-shadow: 0 0 0 3px rgba(45, 147, 213, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--gris-claro);
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--gradiente);
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 79, 152, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 79, 152, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--gris-claro);
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: var(--gris-oscuro);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* Responsive para modal */
+    @media (max-width: 768px) {
+      .modal-content {
+        width: 95%;
+        margin: 2% auto;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .modal-header {
+        padding: 1.5rem;
+      }
+      
+      .modal-body {
+        padding: 1.5rem;
+      }
+      
+      .modal-buttons {
+        flex-direction: column;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Navbar -->
+  <!-- Header original -->
   <header>
     <h1>SCAH</h1>
     <nav>
-      <a href="#">Inicio</a>
-      <a href="#">Mis Citas</a>
-      <a href="#">Agendar</a>
-      <a href="#">Historial</a>
-      <a href="#">Perfil</a>
-      <a href="#">Cerrar Sesión</a>
+      <a href="dashboardPaciente.html">Inicio</a>
+      <a href="formularioCita.html">Agendar</a>
+      <a href="vistaReprogramacion.html">Reprogramar Cita</a>
+      <a href="historialMedicoPaciente.html">Historial</a>
+      <a href="#" id="cerrarSesion">Cerrar Sesión</a>
     </nav>
   </header>
 
-  <!-- Contenido principal -->
+  <!-- Contenido principal mejorado -->
   <main>
-    <h2>Mi Perfil</h2>
-
-    <div class="perfil-info">
-      <div>
-        <label>Nombre completo:</label>
-        <p>Juan Pérez</p>
-
-        <label>Correo electrónico:</label>
-        <p>juanperez@example.com</p>
-
-        <label>Número de Identificación:</label>
-        <p>8-1234-5678</p>
+    <!-- Header del perfil -->
+    <div class="perfil-header fade-in">
+      <div class="perfil-avatar" onclick="activarCambioFoto()">
+        <i class="fas fa-user" id="avatarIcon"></i>
+        <img id="avatarImage" src="" alt="Foto de perfil" style="display: none;">
+        <div class="avatar-overlay">
+          <i class="fas fa-camera"></i>
+          <span>Cambiar foto</span>
+        </div>
       </div>
-
-      <div>
-        <label>Teléfono:</label>
-        <p>+507 6123-4567</p>
-
-        <label>Dirección:</label>
-        <p>Ciudad de Panamá, San Francisco</p>
-
-        <label>Fecha de Nacimiento:</label>
-        <p>12 de febrero de 1985</p>
-      </div>
+      <h2 id="userName">Cargando...</h2>
+      <div class="perfil-subtitle">Paciente Registrado</div>
+      
+      <!-- Input oculto para seleccionar archivo -->
+      <input type="file" id="fotoInput" accept="image/*" style="display: none;" onchange="cambiarFoto(event)">
     </div>
 
-    <div class="acciones">
-      <button onclick="alert('Función de edición próximamente')">Editar Información</button>
+    <!-- Contenido del perfil -->
+    <div class="perfil-content fade-in">
+      <div class="perfil-info">
+        <!-- Información Personal -->
+        <div class="info-card">
+          <h3><i class="fas fa-user-circle"></i> Información Personal</h3>
+          
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-id-card"></i>
+              Número de Identificación
+            </div>
+            <div class="info-value" id="userIdentification">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-user"></i>
+              Primer Nombre
+            </div>
+            <div class="info-value" id="userFirstName">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-user"></i>
+              Segundo Nombre
+            </div>
+            <div class="info-value" id="userSecondName">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-user-tag"></i>
+              Primer Apellido
+            </div>
+            <div class="info-value" id="userFirstLastName">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-user-tag"></i>
+              Segundo Apellido
+            </div>
+            <div class="info-value" id="userSecondLastName">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-birthday-cake"></i>
+              Fecha de Nacimiento
+            </div>
+            <div class="info-value" id="userBirthdate">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información de Contacto -->
+        <div class="info-card">
+          <h3><i class="fas fa-address-book"></i> Información de Contacto</h3>
+          
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-envelope"></i>
+              Correo Electrónico
+            </div>
+            <div class="info-value" id="userEmail">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-phone"></i>
+              Número de Teléfono
+            </div>
+            <div class="info-value" id="userPhone">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-label">
+              <i class="fas fa-map-marker-alt"></i>
+              Dirección de Residencia
+            </div>
+            <div class="info-value" id="userAddress">
+              <span class="loading">Cargando...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="acciones">
+        <button class="btn-principal" onclick="abrirModalEdicion()">
+          <i class="fas fa-edit"></i>
+          Editar Información
+        </button>
+      </div>
     </div>
   </main>
 
+  <!-- Modal para editar información -->
+  <div id="modalEdicion" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Editar Información Personal</h3>
+        <span class="close" onclick="cerrarModalEdicion()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <form id="formEditarPerfil">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPrimerNombre">Primer Nombre *</label>
+              <input type="text" id="editPrimerNombre" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editSegundoNombre">Segundo Nombre</label>
+              <input type="text" id="editSegundoNombre">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="editPrimerApellido">Primer Apellido *</label>
+              <input type="text" id="editPrimerApellido" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="editSegundoApellido">Segundo Apellido</label>
+              <input type="text" id="editSegundoApellido">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="editFechaNacimiento">Fecha de Nacimiento *</label>
+            <input type="date" id="editFechaNacimiento" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="editTelefono">Teléfono *</label>
+            <input type="tel" id="editTelefono" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="editDireccion">Dirección</label>
+            <textarea id="editDireccion" rows="3"></textarea>
+          </div>
+          
+          <div class="modal-buttons">
+            <button type="button" class="btn-secondary" onclick="cerrarModalEdicion()">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer original -->
   <footer>
     Sistema de Citas y Atención Hospitalaria (SCAH) &copy; 2025
   </footer>
 
+  <script>
+  let datosUsuario = null;
+
+  // Verificar autenticación y cargar perfil
+  async function verificarAutenticacionYCargarPerfil() {
+    try {
+      console.log('🔍 Verificando autenticación y cargando perfil...');
+      
+      const response = await fetch('/api/auth/perfil-usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}) // El middleware usará req.session.cedula
+      });
+
+      console.log('📡 Respuesta del servidor:', response.status);
+
+      if (response.status === 401) {
+        console.log('❌ No autenticado - redirigiendo al login');
+        window.location.href = '../vista_general/loginRegistrarse.html';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        datosUsuario = data.usuario;
+        console.log('✅ Perfil cargado:', datosUsuario);
+        mostrarPerfil(datosUsuario);
+      }
+    } catch (error) {
+      console.error('❌ Error al verificar autenticación:', error);
+      window.location.href = '../vista_general/loginRegistrarse.html';
+    }
+  }
+
+  // Cerrar sesión
+  document.getElementById('cerrarSesion').addEventListener('click', async function(e) {
+    e.preventDefault();
+    
+    try {
+      // Llamar al endpoint de logout del servidor
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+    }
+    
+    // Redirigir al login
+    window.location.replace('../vista_general/loginRegistrarse.html');
+  });
+
+  // Función para activar el cambio de foto
+  function activarCambioFoto() {
+    document.getElementById('fotoInput').click();
+  }
+  
+  // Función para cambiar la foto
+  async function cambiarFoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Por favor selecciona una imagen válida (JPG, PNG, GIF)');
+      return;
+    }
+
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('La imagen debe ser menor a 5MB');
+      return;
+    }
+
+    const avatarContainer = document.querySelector('.perfil-avatar');
+    const avatarIcon = document.getElementById('avatarIcon');
+    const avatarImage = document.getElementById('avatarImage');
+    
+    // Mostrar loading
+    const loadingDiv = document.createElement('div');
+    loadingDiv.className = 'upload-loading';
+    loadingDiv.innerHTML = 'Subiendo...';
+    avatarContainer.appendChild(loadingDiv);
+
+    try {
+      // Crear FormData para enviar el archivo
+      const formData = new FormData();
+      formData.append('foto', file);
+
+      // Enviar al servidor
+      const response = await fetch('/api/auth/subir-foto', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.status === 401) {
+        window.location.href = '../vista_general/loginRegistrarse.html';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Mostrar la nueva imagen
+        avatarIcon.style.display = 'none';
+        avatarImage.src = data.fotoUrl;
+        avatarImage.style.display = 'block';
+        
+        // Mostrar botón para eliminar foto
+        mostrarBotonEliminarFoto();
+        
+        alert('Foto actualizada exitosamente');
+      } else {
+        const error = await response.json();
+        alert('Error al subir la foto: ' + error.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error de conexión al subir la foto');
+    } finally {
+      // Remover loading
+      avatarContainer.removeChild(loadingDiv);
+    }
+  }
+
+  // Función para mostrar el botón de eliminar foto
+  function mostrarBotonEliminarFoto() {
+    const existingBtn = document.querySelector('.btn-eliminar-foto');
+    if (existingBtn) {
+      existingBtn.remove(); // Eliminar el botón existente antes de crear uno nuevo
+    }
+
+    const btnEliminar = document.createElement('button');
+    btnEliminar.className = 'btn-eliminar-foto';
+    btnEliminar.innerHTML = '<i class="fas fa-trash"></i> Eliminar foto';
+    btnEliminar.onclick = eliminarFoto;
+    
+    // Agregar después del subtítulo
+    const perfilHeader = document.querySelector('.perfil-header');
+    if (perfilHeader) {
+      perfilHeader.appendChild(btnEliminar);
+    }
+  }
+
+  // Función para eliminar la foto
+  async function eliminarFoto() {
+    if (!confirm('¿Estás seguro de que deseas eliminar tu foto de perfil?')) {
+      return;
+    }
+
+    try {
+      console.log('🗑️ Eliminando foto...');
+      
+      const response = await fetch('/api/auth/eliminar-foto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      console.log('📡 Respuesta del servidor:', response.status);
+
+      if (response.status === 401) {
+        console.log('❌ No autenticado - redirigiendo al login');
+        window.location.href = '../vista_general/loginRegistrarse.html';
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Foto eliminada:', data.message);
+        
+        // Volver al icono por defecto
+        const avatarIcon = document.getElementById('avatarIcon');
+        const avatarImage = document.getElementById('avatarImage');
+        
+        if (avatarImage) {
+          avatarImage.style.display = 'none';
+          avatarImage.src = '';
+        }
+        
+        if (avatarIcon) {
+          avatarIcon.style.display = 'block';
+        }
+        
+        // Eliminar botón
+        const btnEliminar = document.querySelector('.btn-eliminar-foto');
+        if (btnEliminar) {
+          btnEliminar.remove();
+        }
+        
+        alert('Foto eliminada exitosamente');
+      } else {
+        const error = await response.json();
+        console.error('❌ Error del servidor:', error);
+        alert('Error al eliminar la foto: ' + error.message);
+      }
+    } catch (error) {
+      console.error('❌ Error de conexión:', error);
+      alert('Error de conexión al eliminar la foto');
+    }
+  }
+
+  // Actualizar la función mostrarPerfil para incluir la foto
+  function mostrarPerfil(usuario) {
+    // Actualizar título del perfil
+    document.getElementById('userName').textContent = usuario.nombre_completo;
+    
+    // Mostrar foto si existe
+    if (usuario.foto_perfil) {
+      const avatarIcon = document.getElementById('avatarIcon');
+      const avatarImage = document.getElementById('avatarImage');
+      
+      avatarIcon.style.display = 'none';
+      avatarImage.src = usuario.foto_perfil;
+      avatarImage.style.display = 'block';
+      
+      mostrarBotonEliminarFoto();
+    }
+
+    // Actualizar información personal
+    document.getElementById('userIdentification').textContent = usuario.cedula;
+    document.getElementById('userFirstName').textContent = usuario.primer_nombre || 'No disponible';
+    document.getElementById('userSecondName').textContent = usuario.segundo_nombre || 'No disponible';
+    document.getElementById('userFirstLastName').textContent = usuario.primer_apellido || 'No disponible';
+    document.getElementById('userSecondLastName').textContent = usuario.segundo_apellido || 'No disponible';
+    
+    // Formatear y mostrar fecha de nacimiento
+    if (usuario.fecha_nacimiento) {
+      const fecha = new Date(usuario.fecha_nacimiento);
+      const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      document.getElementById('userBirthdate').textContent = fechaFormateada;
+    } else {
+      document.getElementById('userBirthdate').textContent = 'No disponible';
+    }
+    // Actualizar información de contacto
+      document.getElementById('userEmail').textContent = usuario.correo || 'No disponible';
+      document.getElementById('userPhone').textContent = usuario.telefono || 'No disponible';
+      document.getElementById('userAddress').textContent = usuario.direccion || 'No disponible';
+    }
+
+  // Función para abrir modal de edición
+  function abrirModalEdicion() {
+    if (!datosUsuario) {
+      alert('Error: No se han cargado los datos del usuario');
+      return;
+    }
+    
+    // Llenar el formulario con los datos actuales
+    document.getElementById('editPrimerNombre').value = datosUsuario.primer_nombre || '';
+    document.getElementById('editSegundoNombre').value = datosUsuario.segundo_nombre || '';
+    document.getElementById('editPrimerApellido').value = datosUsuario.primer_apellido || '';
+    document.getElementById('editSegundoApellido').value = datosUsuario.segundo_apellido || '';
+    document.getElementById('editTelefono').value = datosUsuario.telefono || '';
+    document.getElementById('editDireccion').value = datosUsuario.direccion || '';
+    
+    // Formatear fecha para el input date
+    if (datosUsuario.fecha_nacimiento) {
+      const fecha = new Date(datosUsuario.fecha_nacimiento);
+      const fechaFormateada = fecha.toISOString().split('T')[0];
+      document.getElementById('editFechaNacimiento').value = fechaFormateada;
+    }
+    
+    document.getElementById('modalEdicion').style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+  }
+
+  // Función para cerrar modal de edición
+  function cerrarModalEdicion() {
+    document.getElementById('modalEdicion').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restaurar scroll del body
+  }
+
+  // Manejar envío del formulario de edición
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('formEditarPerfil').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const datosActualizados = {
+        primer_nombre: document.getElementById('editPrimerNombre').value,
+        segundo_nombre: document.getElementById('editSegundoNombre').value || null,
+        primer_apellido: document.getElementById('editPrimerApellido').value,
+        segundo_apellido: document.getElementById('editSegundoApellido').value || null,
+        telefono: document.getElementById('editTelefono').value,
+        direccion: document.getElementById('editDireccion').value || null,
+        fecha_nacimiento: document.getElementById('editFechaNacimiento').value
+      };
+      
+      // Mostrar indicador de carga
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/auth/actualizar-perfil', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datosActualizados)
+        });
+        
+        if (response.status === 401) {
+          window.location.href = '../vista_general/loginRegistrarse.html';
+          return;
+        }
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          alert('✅ Perfil actualizado exitosamente');
+          cerrarModalEdicion();
+          // Recargar los datos del perfil
+          verificarAutenticacionYCargarPerfil();
+        } else {
+          alert('❌ Error: ' + (result.message || 'Error al actualizar el perfil'));
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión al actualizar el perfil');
+      } finally {
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Cerrar modal al hacer click fuera
+    window.onclick = function(event) {
+      const modal = document.getElementById('modalEdicion');
+      if (event.target === modal) {
+        cerrarModalEdicion();
+      }
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        cerrarModalEdicion();
+      }
+    });
+  });
+
+ </script>
+
+
+  <script type="module">
+    import { cargarNavbar } from '../navbar/navbar.js';
+    cargarNavbar().then(() => {
+      // Llama a la función principal solo después de cargar el navbar
+      verificarAutenticacionYCargarPerfil();
+    });
+  </script>
 </body>
 </html>
