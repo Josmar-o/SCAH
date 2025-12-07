@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt'); //Se debe instalar antes de usarlo: npm install bcrypt
+const bcrypt = require('bcryptjs'); //Se debe instalar antes de usarlo: npm install bcryptjs
 const nodemailer = require('nodemailer'); // Se debe instalar antes de usarlo: npm install nodemailer
 const crypto = require('crypto'); //Se debe instalar antes de usarlo: npm install crypto
 const multer = require('multer'); // Se debe instalar antes de usarlo: npm install multer
