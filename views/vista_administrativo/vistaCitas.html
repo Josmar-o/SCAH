@@ -125,8 +125,6 @@
       padding: 1rem;
       text-align: left;
       border-bottom: 1px solid var(--gris-claro);
-      vertical-align: middle;
-      height: 60px;
     }
 
     tr:hover {
@@ -508,7 +506,7 @@
       });
 
       try {
-        const response = await fetch(`/api/citas/listar?${params.toString()}`);
+        const response = await fetch(`/scah/api/citas/listar?${params.toString()}`);
         const data = await response.json();
         
         if (response.ok) {
@@ -570,7 +568,7 @@
     // Cargar datos para filtros
     async function cargarDatosFiltros() {
       try {
-        const response = await fetch('/api/citas/filtros');
+        const response = await fetch('/scah/api/citas/filtros');
         const data = await response.json();
         
         if (response.ok) {
@@ -637,7 +635,7 @@
       await cargarOpcionesModal();
       
       // Obtener especialidad del médico actual y preseleccionarla
-      const response = await fetch('/api/citas/filtros');
+      const response = await fetch('/scah/api/citas/filtros');
       const data = await response.json();
       if (response.ok) {
         const medicoActual = data.medicos.find(m => m.cedula === cedulaMedico);
@@ -654,7 +652,7 @@
 
     async function cargarOpcionesModal() {
       try {
-        const response = await fetch('/api/citas/filtros');
+        const response = await fetch('/scah/api/citas/filtros');
         const data = await response.json();
         
         if (response.ok) {
@@ -704,7 +702,7 @@
     // Función para verificar cupos disponibles
     async function verificarCupoDisponible(fecha, hora, cedulaMedico) {
       try {
-        const response = await fetch(`/api/citas/verificar-cupos?fecha=${fecha}&hora=${hora}&cedula_medico=${cedulaMedico}`);
+        const response = await fetch(`/scah/api/citas/verificar-cupos?fecha=${fecha}&hora=${hora}&cedula_medico=${cedulaMedico}`);
         const data = await response.json();
         return data.disponible;
       } catch (error) {
@@ -748,7 +746,7 @@
       const idCita = document.getElementById('editarIdCita').value;
       
       try {
-        const response = await fetch(`/api/citas/editar/${idCita}`, {
+        const response = await fetch(`/scah/api/citas/editar/${idCita}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -774,7 +772,7 @@
     // Confirmar cancelación
     async function confirmarCancelacion() {
       try {
-        const response = await fetch(`/api/citas/cancelar/${idCitaCancelar}`, {
+        const response = await fetch(`/scah/api/citas/cancelar/${idCitaCancelar}`, {
           method: 'PUT'
         });
         
@@ -833,16 +831,16 @@
     // Función de verificación de autenticación
     async function verificarAutenticacion() {
       try {
-        const response = await fetch('/api/auth/verificar-sesion');
+        const response = await fetch('/scah/api/auth/verificar-sesion');
         const data = await response.json();
         
         if (!response.ok || data.rol !== 'administrativo') {
-          window.location.replace('../vista_general/loginRegistrarse.html');
+          window.location.replace('/scah/vista_general/loginRegistrarse.html');
           return;
         }
       } catch (error) {
         console.error('Error al verificar autenticación:', error);
-        window.location.replace('../vista_general/loginRegistrarse.html');
+        window.location.replace('/scah/vista_general/loginRegistrarse.html');
       }
     }
   </script>

@@ -155,7 +155,7 @@
         <input type="email" id="email" placeholder="ejemplo@correo.com" />
         <label for="password">Contraseña</label>
         <input type="password" id="password" placeholder="********" />
-        <button>Ingresar</button>
+        <button id="btnLogin">Ingresar</button>
         <div id="mensajeLogin" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿No tienes cuenta? Regístrate</div>
         <div class="toggle-link" onclick="mostrarRecuperar()">¿Olvidaste tu contraseña?</div>
@@ -195,7 +195,14 @@
           • Al menos 1 número<br>
           • Al menos 1 símbolo (!@#$%^&*()_+-=[]{}|;:,.<>?)
         </small>
-        <button>Registrarse</button>
+        <button id="btnRegistrarse">Registrarse</button>
+        <div id="spinnerRegister" class="spinner" style="display:none;">
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" stroke="#2d93d5" stroke-width="4" fill="none" stroke-linecap="round">
+              <animateTransform attributeName="transform" type="rotate" dur="1s" repeatCount="indefinite" from="0 20 20" to="360 20 20"/>
+            </circle>
+          </svg>
+        </div>
         <div id="mensajeRegister" style="color: #d32f2f; margin-top: 10px; text-align: center;"></div>
         <div class="toggle-link" onclick="toggleForm()">¿Ya tienes cuenta? Inicia sesión</div>
       </div>
@@ -496,6 +503,7 @@
   
   //función para manejar el login
   async function handleLogin() {
+    const btnLogin = document.getElementById('btnLogin');
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const mensajeDiv = document.getElementById('mensajeLogin');
@@ -506,38 +514,71 @@
       mensajeDiv.style.color = '#d32f2f';
       mensajeDiv.textContent = 'Por favor, completa todos los campos.';
       return;
-      }
+    }
 
+    // Evitar múltiples envíos
+    if (btnLogin.disabled) {
+      return;
+    }
 
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ correo: email, contrasena: password }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      mensajeDiv.style.color = '#388e3c';
-      mensajeDiv.textContent = 'Login exitoso';
-          if (data.user && data.user.rol) {
-            if (data.user.rol === 'paciente') {
-              setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente.html'); }, 2000);
-            } else if (data.user.rol === 'medico') {
-              setTimeout(() => { window.location.replace('../vista_medico/vistaMedico.html'); }, 2000);
-            } else if (data.user.rol === 'administrativo') {
-              setTimeout(() => { window.location.replace('../vista_administrativo/dashboardAdministrativo.html'); }, 2000);
-            }
-          }else{
+    // Deshabilitar botón durante el proceso
+    btnLogin.disabled = true;
+    const textoOriginal = btnLogin.textContent;
+    btnLogin.textContent = 'Ingresando...';
+
+    try {
+      const response = await fetch('/scah/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email, contrasena: password }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        mensajeDiv.style.color = '#388e3c';
+        mensajeDiv.textContent = 'Login exitoso';
+        
+        if (data.user && data.user.rol) {
+          if (data.user.rol === 'paciente') {
+            setTimeout(() => { window.location.replace('../vista_paciente/dashboardPaciente.html'); }, 2000);
+          } else if (data.user.rol === 'medico') {
+            setTimeout(() => { window.location.replace('../vista_medico/vistaMedico.html'); }, 2000);
+          } else if (data.user.rol === 'administrativo') {
+            setTimeout(() => { window.location.replace('../vista_administrativo/dashboardAdministrativo.html'); }, 2000);
+          }
+        } else {
           // Si no hay rol, redirige por defecto
           setTimeout(() => { window.location.replace('home.html'); }, 2000);
         }
       } else {
+        // Rehabilitar botón en caso de error
+        btnLogin.disabled = false;
+        btnLogin.textContent = textoOriginal;
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = data.message || 'Error al iniciar sesión';
+      }
+    } catch (error) {
+      // Manejar errores de conexión
+      btnLogin.disabled = false;
+      btnLogin.textContent = textoOriginal;
       mensajeDiv.style.color = '#d32f2f';
-      mensajeDiv.textContent = data.message || 'Error al iniciar sesión';
+      mensajeDiv.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+      console.error('Error en login:', error);
     }
   }
 
   //Función para manejar el registro
   async function handleRegister() {
+    const btnRegistrarse = document.getElementById('btnRegistrarse');
+    const spinnerRegister = document.getElementById('spinnerRegister');
+    const mensajeDiv = document.getElementById('mensajeRegister');
+    
+    // Evitar múltiples envíos
+    if (btnRegistrarse.disabled) {
+      return;
+    }
+    
     // Obtén las referencias a los inputs
   const cedulaInput = document.getElementById('cedula');
   const primerNombreInput = document.getElementById('primer_nombre');
@@ -550,6 +591,10 @@
   const direccionInput = document.getElementById('direccion');
   const contrasenaInput = document.getElementById('passwordRegister');
   const confirmarContrasenaInput = document.getElementById('confirmPasswordRegister');
+
+  // Limpiar mensaje anterior
+  mensajeDiv.textContent = '';
+  mensajeDiv.style.color = '#d32f2f';
 
   // Obtén los valores
   const cedula = cedulaInput.value.toUpperCase(); // Asegurar que esté en mayúsculas
@@ -564,10 +609,7 @@
   const contrasena = contrasenaInput.value;
   const confirmarContrasena = confirmarContrasenaInput.value;
 
-    const mensajeDiv = document.getElementById('mensajeRegister');
-    mensajeDiv.textContent = ''; // Limpiar mensaje anterior
-
-      // Quitar errores previos
+    // Quitar errores previos
     cedulaInput.classList.remove('input-error');
     primerNombreInput.classList.remove('input-error');
     primerApellidoInput.classList.remove('input-error');
@@ -633,26 +675,51 @@
       return;
     }
     
-    const response = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cedula, primer_nombre, segundo_nombre, primer_apellido,
-        segundo_apellido, fecha_nacimiento, telefono, correo,
-        direccion, contrasena
-      }),
-    });
-    const data = await response.json();
-    if (response.ok) {
-      mensajeDiv.style.color = '#388e3c';
-      mensajeDiv.textContent = 'Registro exitoso';
-      // Mostrar formulario de login y ocultar el de registro
-      document.getElementById('formRegister').style.display = 'none';
-      document.getElementById('formLogin').style.display = 'block';
-      setTimeout(() => location.reload(), 1000);// Recarga la página después de 1 segundo
-    } else {
+    // Deshabilitar botón y mostrar spinner
+    btnRegistrarse.disabled = true;
+    const textoOriginal = btnRegistrarse.textContent;
+    btnRegistrarse.textContent = 'Procesando...';
+    spinnerRegister.style.display = 'block';
+    
+    try {
+      const response = await fetch('/scah/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cedula, primer_nombre, segundo_nombre, primer_apellido,
+          segundo_apellido, fecha_nacimiento, telefono, correo,
+          direccion, contrasena
+        }),
+      });
+      
+      const data = await response.json();
+      
+      // Ocultar spinner
+      spinnerRegister.style.display = 'none';
+      
+      if (response.ok) {
+        mensajeDiv.style.color = '#388e3c';
+        mensajeDiv.textContent = data.message || 'Se ha enviado un código de verificación a tu correo';
+        
+        // Redirigir a la página de verificación con el token seguro
+        setTimeout(() => {
+          window.location.href = `/scah/vista_general/verificar-registro.html?token=${encodeURIComponent(data.token)}`;
+        }, 1500);
+      } else {
+        // Rehabilitar botón en caso de error
+        btnRegistrarse.disabled = false;
+        btnRegistrarse.textContent = textoOriginal;
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = data.message || 'Error en el registro';
+      }
+    } catch (error) {
+      // Manejar errores de conexión
+      spinnerRegister.style.display = 'none';
+      btnRegistrarse.disabled = false;
+      btnRegistrarse.textContent = textoOriginal;
       mensajeDiv.style.color = '#d32f2f';
-      mensajeDiv.textContent = data.message || 'Error en el registro';
+      mensajeDiv.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+      console.error('Error en registro:', error);
     }
   }
 
@@ -681,7 +748,7 @@
     btnRecuperar.textContent = 'Enviando...';
 
     try {
-      const response = await fetch('/api/auth/forgot-password', {
+      const response = await fetch('/scah/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email }),
@@ -705,8 +772,8 @@
     }
 }
 
-    document.querySelector('#formLogin button').addEventListener('click', handleLogin);
-    document.querySelector('#formRegister button').addEventListener('click', handleRegister);
+    document.getElementById('btnLogin').addEventListener('click', handleLogin);
+    document.getElementById('btnRegistrarse').addEventListener('click', handleRegister);
     document.getElementById('btnRecuperar').addEventListener('click', handleRecuperar);
   </script>
 </body>

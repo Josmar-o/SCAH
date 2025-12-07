@@ -1,7 +1,7 @@
 export async function cargarNavbar() {
   const contenedor = document.getElementById('navbar-container');
   if (!contenedor) return;
-  const res = await fetch('../navbar/navbarAdmin.html');
+  const res = await fetch('/scah/navbar/navbarAdmin.html');
   const html = await res.text();
   contenedor.innerHTML = html;
 
@@ -10,14 +10,14 @@ export async function cargarNavbar() {
     cerrarSesion.addEventListener('click', async function(e) {
       e.preventDefault();
       try {
-        await fetch('/api/auth/logout', {
+        await fetch('/scah/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
       } catch (error) {
         console.error('Error al cerrar sesión:', error);
       }
-      window.location.replace('../vista_general/loginRegistrarse.html');
+      window.location.replace('/scah/vista_general/loginRegistrarse.html');
     });
   }
 }

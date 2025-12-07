@@ -871,7 +871,7 @@
     try {
       console.log('🔍 Verificando autenticación y cargando perfil...');
       
-      const response = await fetch('/api/auth/perfil-usuario', {
+      const response = await fetch('/scah/api/auth/perfil-usuario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}) // El middleware usará req.session.cedula
@@ -903,7 +903,7 @@
     
     try {
       // Llamar al endpoint de logout del servidor
-      await fetch('/api/auth/logout', {
+      await fetch('/scah/api/auth/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -954,7 +954,7 @@
       formData.append('foto', file);
 
       // Enviar al servidor
-      const response = await fetch('/api/auth/subir-foto', {
+      const response = await fetch('/scah/api/auth/subir-foto', {
         method: 'POST',
         body: formData
       });
@@ -1017,7 +1017,7 @@
     try {
       console.log('🗑️ Eliminando foto...');
       
-      const response = await fetch('/api/auth/eliminar-foto', {
+      const response = await fetch('/scah/api/auth/eliminar-foto', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
@@ -1162,7 +1162,7 @@
       submitBtn.disabled = true;
       
       try {
-        const response = await fetch('/api/auth/actualizar-perfil', {
+        const response = await fetch('/scah/api/auth/actualizar-perfil', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datosActualizados)

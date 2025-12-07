@@ -378,7 +378,7 @@
         tipo: tipoUsuario.value,
         buscar: buscarInput.value
       });
-      const res = await fetch(`/api/usuarios/listar?${params.toString()}`);
+      const res = await fetch(`/scah/api/usuarios/listar?${params.toString()}`);
       const data = await res.json();
       tablaUsuarios.innerHTML = '';
       data.usuarios.forEach(u => {
@@ -461,7 +461,7 @@
       };
 
       try {
-        const response = await fetch(`/api/usuarios/editar/${cedula}`, {
+        const response = await fetch(`/scah/api/usuarios/editar/${cedula}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
@@ -487,7 +487,7 @@
     // Función para confirmar eliminación
     async function confirmarEliminacion() {
       try {
-        const response = await fetch(`/api/usuarios/eliminar/${cedulaEliminar}`, {
+        const response = await fetch(`/scah/api/usuarios/eliminar/${cedulaEliminar}`, {
           method: 'DELETE'
         });
 
@@ -510,7 +510,7 @@
     document.querySelector('nav a:last-child').addEventListener('click', async function(e) {
       e.preventDefault();
       try {
-        await fetch('/api/auth/logout', {
+        await fetch('/scah/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });

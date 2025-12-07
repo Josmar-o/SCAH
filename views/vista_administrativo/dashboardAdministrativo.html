@@ -617,7 +617,7 @@
       medicoSelect.innerHTML = '<option value="">Cargando médicos...</option>';
 
       try {
-        const res = await fetch('/api/medico/todos');
+        const res = await fetch('/scah/api/medico/todos');
         const medicos = await res.json();
         if (medicos.length === 0) {
           medicoSelect.innerHTML = '<option value="">No hay médicos disponibles</option>';
@@ -634,7 +634,7 @@
 
       // Cargar todos los cupos del backend
       try {
-        const res = await fetch('/api/cupo/todos');
+        const res = await fetch('/scah/api/cupo/todos');
         const cuposBD = await res.json();
         // Agrupa los cupos por fecha
         cupos = {};
@@ -770,7 +770,7 @@
 
         // Enviar cupos al backend
         try {
-          const res = await fetch('/api/cupo/crear', {
+          const res = await fetch('/scah/api/cupo/crear', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ cupos: cuposParaCrear })
@@ -815,7 +815,7 @@
       e.preventDefault();
       
       try {
-        await fetch('/api/auth/logout', {
+        await fetch('/scah/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -831,7 +831,7 @@
 
     async function cargarCuposDelDia(cedula_medico, fechaKey) {
       try {
-        const res = await fetch(`/api/cupo/por-medico?cedula_medico=${encodeURIComponent(cedula_medico)}&fecha=${encodeURIComponent(fechaKey)}`);
+        const res = await fetch(`/scah/api/cupo/por-medico?cedula_medico=${encodeURIComponent(cedula_medico)}&fecha=${encodeURIComponent(fechaKey)}`);
         const cuposBD = await res.json();
         // Transforma los cupos para que tengan el mismo formato que usas en el frontend
         cupos[fechaKey] = cuposBD.map(c => ({

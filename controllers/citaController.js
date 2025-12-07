@@ -1,3 +1,5 @@
+const { enviarCorreoCita } = require('./emailService');
+
 exports.crearCita = (req, res, connection) => {
     const cedula_paciente = req.session.cedula;
     const { fecha_cita, hora_cita, cedula_medico } = req.body;
@@ -110,7 +112,42 @@ exports.crearCita = (req, res, connection) => {
                                         console.error('Error MySQL:', err);
                                         return res.status(500).json({ message: 'Error al registrar la cita', error: err });
                                     }
-                                    res.json({ message: 'Cita registrada correctamente', id_cita: result.insertId, numero_tiquete: numero_tiquete_str });
+                                    
+                                    // Obtener datos para enviar correo
+                                    const sqlDatos = `
+                                        SELECT 
+                                            CONCAT(p.primer_nombre, ' ', IFNULL(p.segundo_nombre, ''), ' ', p.primer_apellido, ' ', IFNULL(p.segundo_apellido, '')) AS nombre_paciente,
+                                            p.correo AS correo_paciente,
+                                            CONCAT(med.primer_nombre, ' ', IFNULL(med.segundo_nombre, ''), ' ', med.primer_apellido, ' ', IFNULL(med.segundo_apellido, '')) AS nombre_medico,
+                                            med.especialidad
+                                        FROM Cita c
+                                        INNER JOIN Paciente p ON c.cedula_paciente = p.cedula
+                                        INNER JOIN Medico med ON c.cedula_medico = med.cedula
+                                        WHERE c.id_cita = ?
+                                    `;
+                                    
+                                    connection.query(sqlDatos, [result.insertId], async (err2, datosCita) => {
+                                        if (err2) {
+                                            console.error('Error al obtener datos para correo:', err2);
+                                            // No falla la operación, solo no se envía el correo
+                                            return res.json({ message: 'Cita registrada correctamente', id_cita: result.insertId, numero_tiquete: numero_tiquete_str });
+                                        }
+                                        
+                                        if (datosCita && datosCita.length > 0) {
+                                            // Enviar correo de confirmación
+                                            await enviarCorreoCita({
+                                                correoPaciente: datosCita[0].correo_paciente,
+                                                nombrePaciente: datosCita[0].nombre_paciente,
+                                                nombreMedico: datosCita[0].nombre_medico,
+                                                especialidad: datosCita[0].especialidad,
+                                                fecha: fechaFormateada,
+                                                hora: hora_cita,
+                                                tipoAccion: 'creada'
+                                            });
+                                        }
+                                        
+                                        res.json({ message: 'Cita registrada correctamente', id_cita: result.insertId, numero_tiquete: numero_tiquete_str });
+                                    });
                                 }
                             );
                         }
@@ -359,7 +396,40 @@ exports.editarCita = (req, res, connection) => {
                     return res.status(500).json({ message: 'Error al actualizar cita', error: err });
                 }
                 
-                res.json({ message: 'Cita actualizada correctamente' });
+                // Obtener datos para enviar correo de reagendamiento
+                const sqlDatos = `
+                    SELECT 
+                        CONCAT(p.primer_nombre, ' ', IFNULL(p.segundo_nombre, ''), ' ', p.primer_apellido, ' ', IFNULL(p.segundo_apellido, '')) AS nombre_paciente,
+                        p.correo AS correo_paciente,
+                        CONCAT(med.primer_nombre, ' ', IFNULL(med.segundo_nombre, ''), ' ', med.primer_apellido, ' ', IFNULL(med.segundo_apellido, '')) AS nombre_medico,
+                        med.especialidad
+                    FROM Cita c
+                    INNER JOIN Paciente p ON c.cedula_paciente = p.cedula
+                    INNER JOIN Medico med ON c.cedula_medico = med.cedula
+                    WHERE c.id_cita = ?
+                `;
+                
+                connection.query(sqlDatos, [id], async (err2, datosCita) => {
+                    if (err2) {
+                        console.error('Error al obtener datos para correo:', err2);
+                        return res.json({ message: 'Cita actualizada correctamente' });
+                    }
+                    
+                    if (datosCita && datosCita.length > 0) {
+                        // Enviar correo de confirmación de reagendamiento
+                        await enviarCorreoCita({
+                            correoPaciente: datosCita[0].correo_paciente,
+                            nombrePaciente: datosCita[0].nombre_paciente,
+                            nombreMedico: datosCita[0].nombre_medico,
+                            especialidad: datosCita[0].especialidad,
+                            fecha: fecha_cita,
+                            hora: hora_cita,
+                            tipoAccion: 'reagendada'
+                        });
+                    }
+                    
+                    res.json({ message: 'Cita actualizada correctamente' });
+                });
             });
         }
     });
@@ -559,10 +629,47 @@ exports.crearCitaAdmin = (req, res, connection) => {
                                                 return res.status(500).json({ message: 'Error al ocupar el cupo' });
                                             }
 
-                                            res.status(201).json({
-                                                message: 'Cita creada exitosamente',
-                                                id_cita: result.insertId,
-                                                numero_tiquete: numero_tiquete
+                                            // Obtener datos para enviar correo
+                                            const sqlDatos = `
+                                                SELECT 
+                                                    CONCAT(p.primer_nombre, ' ', IFNULL(p.segundo_nombre, ''), ' ', p.primer_apellido, ' ', IFNULL(p.segundo_apellido, '')) AS nombre_paciente,
+                                                    p.correo AS correo_paciente,
+                                                    CONCAT(med.primer_nombre, ' ', IFNULL(med.segundo_nombre, ''), ' ', med.primer_apellido, ' ', IFNULL(med.segundo_apellido, '')) AS nombre_medico,
+                                                    med.especialidad
+                                                FROM Cita c
+                                                INNER JOIN Paciente p ON c.cedula_paciente = p.cedula
+                                                INNER JOIN Medico med ON c.cedula_medico = med.cedula
+                                                WHERE c.id_cita = ?
+                                            `;
+                                            
+                                            connection.query(sqlDatos, [result.insertId], async (err2, datosCita) => {
+                                                if (err2) {
+                                                    console.error('Error al obtener datos para correo:', err2);
+                                                    return res.status(201).json({
+                                                        message: 'Cita creada exitosamente',
+                                                        id_cita: result.insertId,
+                                                        numero_tiquete: numero_tiquete
+                                                    });
+                                                }
+                                                
+                                                if (datosCita && datosCita.length > 0) {
+                                                    // Enviar correo de confirmación
+                                                    await enviarCorreoCita({
+                                                        correoPaciente: datosCita[0].correo_paciente,
+                                                        nombrePaciente: datosCita[0].nombre_paciente,
+                                                        nombreMedico: datosCita[0].nombre_medico,
+                                                        especialidad: datosCita[0].especialidad,
+                                                        fecha: fechaFormateada,
+                                                        hora: hora_cita,
+                                                        tipoAccion: 'creada'
+                                                    });
+                                                }
+                                                
+                                                res.status(201).json({
+                                                    message: 'Cita creada exitosamente',
+                                                    id_cita: result.insertId,
+                                                    numero_tiquete: numero_tiquete
+                                                });
                                             });
                                         }
                                     );

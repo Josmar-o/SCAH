@@ -343,7 +343,7 @@
     // Verificar autenticación y obtener datos del usuario
     async function verificarAutenticacion() {
       try {
-        const response = await fetch('/api/auth/datos-usuario', {
+        const response = await fetch('/scah/api/auth/datos-usuario', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}) // El middleware usará req.session.cedula
@@ -375,7 +375,7 @@
     // Función para cargar las citas
     async function cargarCitas() {
       try {
-        const response = await fetch('/api/auth/citas-paciente', {
+        const response = await fetch('/scah/api/auth/citas-paciente', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}) // El middleware usará req.session.cedula

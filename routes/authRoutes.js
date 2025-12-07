@@ -8,6 +8,7 @@ module.exports = (connection) => {
     // Rutas públicas (sin protección)
     router.post('/login', (req, res) => authController.login(req, res, connection));
     router.post('/register', (req, res) => authController.register(req, res, connection));
+    router.post('/verify-registration', (req, res) => authController.verifyRegistration(req, res, connection));
     router.post('/forgot-password', (req, res) => authController.forgotPassword(req, res, connection)); 
     router.post('/reset-password', (req, res) => authController.resetPassword(req, res, connection));
     router.post('/verificar-paciente', (req, res) => authController.verificarPaciente(req, res, connection));

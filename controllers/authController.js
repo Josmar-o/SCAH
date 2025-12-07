@@ -257,58 +257,130 @@ exports.register = (req, res, connection) => {
         });
     }
 
-    const insertarPaciente = `
-        INSERT INTO Paciente (
-            cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
-            fecha_nacimiento, telefono, correo, direccion
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const insertarUsuario = `
-        INSERT INTO usuarios (
-            cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, contrasena
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    // Insertar paciente
-    connection.query(insertarPaciente, [
-        cedula, primer_nombre, segundo_nombre, primer_apellido,
-        segundo_apellido, fecha_nacimiento, telefono, correo, direccion
-    ], (err, result1) => {
-        if (err) {
-            console.error('Error al insertar paciente:', err);
-            if (err.code === 'ER_DUP_ENTRY') {
+    // Verificar si ya existe un usuario con esa cédula o correo
+    connection.query(
+        'SELECT * FROM usuarios WHERE cedula = ? OR correo = ?',
+        [cedula, correo],
+        (err, results) => {
+            if (err) {
+                console.error('Error al verificar usuario:', err);
+                return res.status(500).json({ message: 'Error del servidor' });
+            }
+            
+            if (results.length > 0) {
                 return res.status(400).json({ 
-                    message: 'Ya existe un paciente registrado con esta cédula o correo electrónico' 
+                    message: 'Ya existe un usuario registrado con esta cédula o correo electrónico' 
                 });
             }
-            return res.status(500).json({ message: 'Error al registrar paciente' });
-        }
-        
-        // Encriptar la contraseña
-        bcrypt.hash(contrasena, 10, (err, hash) => {
-            if (err) {
-                return res.status(500).json({ message: 'Error al encriptar la contraseña' });
-            }
-            // Insertar usuario con la contraseña encriptada (hash)
-            connection.query(
-                insertarUsuario,
-                [cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, hash],
-                (err2, result2) => {
-                    if (err2) {
-                        console.error('Error al insertar usuario:', err2);
-                        if (err2.code === 'ER_DUP_ENTRY') {
-                            return res.status(400).json({ 
-                                message: 'Ya existe un usuario registrado con esta cédula o correo electrónico' 
+
+            // Generar código de verificación de 6 dígitos y token seguro
+            const codigoVerificacion = Math.floor(100000 + Math.random() * 900000).toString();
+            const tokenVerificacion = crypto.randomBytes(32).toString('hex');
+            const expiracion = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+            // Encriptar la contraseña
+            bcrypt.hash(contrasena, 10, (err, hash) => {
+                if (err) {
+                    return res.status(500).json({ message: 'Error al encriptar la contraseña' });
+                }
+
+                // Crear tabla temporal si no existe
+                const crearTablaTemporal = `
+                    CREATE TABLE IF NOT EXISTS registros_pendientes (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        cedula VARCHAR(20) NOT NULL,
+                        primer_nombre VARCHAR(50) NOT NULL,
+                        segundo_nombre VARCHAR(50),
+                        primer_apellido VARCHAR(50) NOT NULL,
+                        segundo_apellido VARCHAR(50),
+                        fecha_nacimiento DATE NOT NULL,
+                        telefono VARCHAR(20) NOT NULL,
+                        correo VARCHAR(100) NOT NULL,
+                        direccion TEXT,
+                        contrasena VARCHAR(255) NOT NULL,
+                        codigo_verificacion VARCHAR(6) NOT NULL,
+                        token_verificacion VARCHAR(64) NOT NULL,
+                        expiracion DATETIME NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY unique_cedula (cedula),
+                        UNIQUE KEY unique_correo (correo),
+                        UNIQUE KEY unique_token (token_verificacion)
+                    )
+                `;
+
+                connection.query(crearTablaTemporal, (err) => {
+                    if (err) {
+                        console.error('Error al crear tabla temporal:', err);
+                        return res.status(500).json({ message: 'Error del servidor' });
+                    }
+
+                    // Intentar agregar columna token_verificacion si no existe
+                    const agregarColumnaToken = `
+                        ALTER TABLE registros_pendientes 
+                        ADD COLUMN token_verificacion VARCHAR(64) NOT NULL UNIQUE
+                    `;
+
+                    connection.query(agregarColumnaToken, (errAlter) => {
+                        // Ignorar el error si la columna ya existe (errno 1060 = columna duplicada)
+                        if (errAlter && errAlter.errno !== 1060) {
+                            console.log('Nota al agregar columna token:', errAlter.message);
+                        }
+                    });
+
+                    // Guardar datos temporalmente
+                    const insertarTemporal = `
+                        INSERT INTO registros_pendientes (
+                            cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+                            fecha_nacimiento, telefono, correo, direccion, contrasena,
+                            codigo_verificacion, token_verificacion, expiracion
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE
+                            primer_nombre = VALUES(primer_nombre),
+                            segundo_nombre = VALUES(segundo_nombre),
+                            primer_apellido = VALUES(primer_apellido),
+                            segundo_apellido = VALUES(segundo_apellido),
+                            fecha_nacimiento = VALUES(fecha_nacimiento),
+                            telefono = VALUES(telefono),
+                            direccion = VALUES(direccion),
+                            contrasena = VALUES(contrasena),
+                            codigo_verificacion = VALUES(codigo_verificacion),
+                            token_verificacion = VALUES(token_verificacion),
+                            expiracion = VALUES(expiracion)
+                    `;
+
+                    connection.query(insertarTemporal, [
+                        cedula, primer_nombre, segundo_nombre, primer_apellido,
+                        segundo_apellido, fecha_nacimiento, telefono, correo, direccion,
+                        hash, codigoVerificacion, tokenVerificacion, expiracion
+                    ], async (err) => {
+                        if (err) {
+                            console.error('Error al guardar registro temporal:', err);
+                            return res.status(500).json({ message: 'Error al procesar el registro' });
+                        }
+
+                        // Enviar correo con código de verificación
+                        const emailService = require('./emailService');
+                        const resultadoEmail = await emailService.enviarCorreoVerificacion({
+                            correo: correo,
+                            nombre: `${primer_nombre} ${primer_apellido}`,
+                            codigo: codigoVerificacion
+                        });
+
+                        if (resultadoEmail.success) {
+                            return res.status(200).json({ 
+                                message: 'Se ha enviado un código de verificación a tu correo electrónico',
+                                token: tokenVerificacion
+                            });
+                        } else {
+                            return res.status(500).json({ 
+                                message: 'Error al enviar el correo de verificación. Intenta de nuevo.' 
                             });
                         }
-                        return res.status(500).json({ message: 'Paciente creado, pero error al crear usuario' });
-                    }
-                    return res.status(200).json({ message: 'Registro exitoso' });
-                }
-            );
-        });
-    });
+                    });
+                });
+            });
+        }
+    );
 };
 
 // Función para manejar el envío de correo de recuperación de contraseña
@@ -338,7 +410,7 @@ exports.forgotPassword = (req, res, connection) => {
                 }
 
                 // 3. Enviar correo con el enlace de recuperación
-                const resetUrl = `http://localhost:3000/vista_general/reset-password.html?token=${token}`;
+                const resetUrl = `http://localhost:3000/scah/vista_general/reset-password.html?token=${token}`;
                 // Configuracion del transportador de nodemailer
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
@@ -405,6 +477,95 @@ exports.resetPassword = (req, res, connection) => {
                         return res.json({ message: 'Contraseña restablecida con éxito.' });
                     }
                 );
+            });
+        }
+    );
+};
+
+// Función para verificar el código de registro
+exports.verifyRegistration = (req, res, connection) => {
+    const { token, codigo } = req.body;
+
+    if (!token || !codigo) {
+        return res.status(400).json({ message: 'Token y código son requeridos' });
+    }
+
+    // Buscar el registro pendiente con el token y código válidos
+    connection.query(
+        'SELECT * FROM registros_pendientes WHERE token_verificacion = ? AND codigo_verificacion = ? AND expiracion > NOW()',
+        [token, codigo],
+        (err, results) => {
+            if (err) {
+                console.error('Error al verificar código:', err);
+                return res.status(500).json({ message: 'Error del servidor' });
+            }
+
+            if (results.length === 0) {
+                return res.status(400).json({ message: 'Código inválido o expirado' });
+            }
+
+            const registro = results[0];
+
+            // Insertar en la tabla Paciente
+            const insertarPaciente = `
+                INSERT INTO Paciente (
+                    cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido,
+                    fecha_nacimiento, telefono, correo, direccion
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+
+            connection.query(insertarPaciente, [
+                registro.cedula, registro.primer_nombre, registro.segundo_nombre, 
+                registro.primer_apellido, registro.segundo_apellido, registro.fecha_nacimiento, 
+                registro.telefono, registro.correo, registro.direccion
+            ], (err) => {
+                if (err) {
+                    console.error('Error al insertar paciente:', err);
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        return res.status(400).json({ 
+                            message: 'Ya existe un paciente registrado con esta cédula o correo' 
+                        });
+                    }
+                    return res.status(500).json({ message: 'Error al crear el paciente' });
+                }
+
+                // Insertar en la tabla usuarios
+                const insertarUsuario = `
+                    INSERT INTO usuarios (
+                        cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, correo, contrasena
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                `;
+
+                connection.query(insertarUsuario, [
+                    registro.cedula, registro.primer_nombre, registro.segundo_nombre,
+                    registro.primer_apellido, registro.segundo_apellido, registro.correo, registro.contrasena
+                ], (err) => {
+                    if (err) {
+                        console.error('Error al insertar usuario:', err);
+                        if (err.code === 'ER_DUP_ENTRY') {
+                            return res.status(400).json({ 
+                                message: 'Ya existe un usuario registrado con esta cédula o correo' 
+                            });
+                        }
+                        return res.status(500).json({ message: 'Paciente creado, pero error al crear usuario' });
+                    }
+
+                    // Eliminar el registro pendiente usando el token
+                    connection.query(
+                        'DELETE FROM registros_pendientes WHERE token_verificacion = ?',
+                        [token],
+                        (err) => {
+                            if (err) {
+                                console.error('Error al eliminar registro pendiente:', err);
+                                // No fallar aquí, el usuario ya fue creado exitosamente
+                            }
+
+                            return res.status(200).json({ 
+                                message: 'Cuenta verificada exitosamente. Ya puedes iniciar sesión.' 
+                            });
+                        }
+                    );
+                });
             });
         }
     );

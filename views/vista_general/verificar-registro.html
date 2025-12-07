@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificar Registro - SCAH</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Questrial', sans-serif;
+      background: #f1f5f9;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .verify-container {
+      background: #f9fafb;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #c8c7c9;
+      max-width: 450px;
+      width: 100%;
+      text-align: center;
+    }
+    .verify-container h2 {
+      color: #004f98;
+      font-family: 'Libre Baskerville', serif;
+      margin-bottom: 1rem;
+    }
+    .verify-container p {
+      color: #666;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .verify-container .email-display {
+      background: #e3f2fd;
+      padding: 0.75rem;
+      border-radius: 6px;
+      color: #004f98;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      word-break: break-all;
+    }
+    .code-inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .code-inputs input {
+      width: 50px;
+      height: 55px;
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      border: 2px solid #c8c7c9;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.3s;
+      font-family: 'Courier New', monospace;
+    }
+    .code-inputs input:focus {
+      border-color: #2d93d5;
+    }
+    .code-inputs input.filled {
+      border-color: #388e3c;
+    }
+    .verify-container button {
+      width: 100%;
+      background-color: #2d93d5;
+      color: white;
+      padding: 0.9rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    .verify-container button:hover:not(:disabled) {
+      background-color: #004f98;
+    }
+    .verify-container button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    .resend-link {
+      color: #2d93d5;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 0.9rem;
+      display: inline-block;
+      margin-top: 0.5rem;
+    }
+    .resend-link:hover {
+      color: #004f98;
+    }
+    .resend-link.disabled {
+      color: #999;
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+    #mensaje {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.95rem;
+      padding: 0.75rem;
+      border-radius: 6px;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2d93d5;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .countdown {
+      color: #666;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    @media (max-width: 600px) {
+      .verify-container {
+        padding: 1.5rem;
+        max-width: 95vw;
+      }
+      .verify-container h2 {
+        font-size: 1.4rem;
+      }
+      .code-inputs input {
+        width: 40px;
+        height: 45px;
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="verify-container">
+    <h2>Verifica tu cuenta</h2>
+    <p>Hemos enviado un código de verificación de 6 dígitos a:</p>
+    <div class="email-display" id="emailDisplay"></div>
+    <p>Ingresa el código para completar tu registro:</p>
+    
+    <form id="verifyForm">
+      <div class="code-inputs">
+        <input type="text" maxlength="1" class="code-input" id="digit1" required>
+        <input type="text" maxlength="1" class="code-input" id="digit2" required>
+        <input type="text" maxlength="1" class="code-input" id="digit3" required>
+        <input type="text" maxlength="1" class="code-input" id="digit4" required>
+        <input type="text" maxlength="1" class="code-input" id="digit5" required>
+        <input type="text" maxlength="1" class="code-input" id="digit6" required>
+      </div>
+      
+      <button type="submit" id="btnVerificar">
+        Verificar Código
+        <div class="spinner" id="spinner"></div>
+      </button>
+      
+      <div id="mensaje"></div>
+      
+      <div style="margin-top: 1.5rem;">
+        <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">¿No recibiste el código?</p>
+        <span class="resend-link" id="resendLink">Reenviar código</span>
+        <div class="countdown" id="countdown"></div>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Obtener el token de la URL
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    
+    const mensajeDiv = document.getElementById('mensaje');
+    const spinner = document.getElementById('spinner');
+    const btnVerificar = document.getElementById('btnVerificar');
+    const emailDisplay = document.getElementById('emailDisplay');
+    const resendLink = document.getElementById('resendLink');
+    const countdownDiv = document.getElementById('countdown');
+    const verifyForm = document.getElementById('verifyForm');
+    
+    let resendTimer = null;
+    let resendSeconds = 0;
+
+    // Verificar que existe el token en la URL
+    if (!token) {
+      mensajeDiv.style.background = '#ffebee';
+      mensajeDiv.style.color = '#d32f2f';
+      mensajeDiv.textContent = 'Error: Enlace de verificación inválido o expirado';
+      verifyForm.style.display = 'none';
+      emailDisplay.parentElement.style.display = 'none';
+    } else {
+      // Ocultar el correo por seguridad
+      emailDisplay.textContent = 'tu correo electrónico';
+    }
+
+    // Obtener todos los inputs del código
+    const codeInputs = document.querySelectorAll('.code-input');
+
+    // Auto-focus en el siguiente input
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', function(e) {
+        const value = this.value;
+        
+        // Solo permitir números
+        if (!/^\d*$/.test(value)) {
+          this.value = '';
+          return;
+        }
+
+        // Marcar como lleno si tiene un dígito
+        if (value.length === 1) {
+          this.classList.add('filled');
+          // Mover al siguiente input
+          if (index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+          }
+        } else {
+          this.classList.remove('filled');
+        }
+      });
+
+      // Manejar backspace para ir al anterior
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && this.value === '' && index > 0) {
+          codeInputs[index - 1].focus();
+          codeInputs[index - 1].value = '';
+          codeInputs[index - 1].classList.remove('filled');
+        }
+      });
+
+      // Pegar código completo
+      input.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').trim();
+        if (/^\d{6}$/.test(pastedData)) {
+          pastedData.split('').forEach((digit, i) => {
+            if (i < codeInputs.length) {
+              codeInputs[i].value = digit;
+              codeInputs[i].classList.add('filled');
+            }
+          });
+          codeInputs[5].focus();
+        }
+      });
+    });
+
+    // Auto-focus en el primer input
+    codeInputs[0].focus();
+
+    // Función para obtener el código completo
+    function getCode() {
+      return Array.from(codeInputs).map(input => input.value).join('');
+    }
+
+    // Manejar el envío del formulario
+    verifyForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const codigo = getCode();
+      
+      if (codigo.length !== 6) {
+        mensajeDiv.style.background = '#ffebee';
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'Por favor, ingresa los 6 dígitos del código';
+        return;
+      }
+
+      spinner.style.display = 'inline-block';
+      btnVerificar.disabled = true;
+      mensajeDiv.textContent = '';
+
+      try {
+        const response = await fetch('/scah/api/auth/verify-registration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, codigo }),
+        });
+
+        const data = await response.json();
+        spinner.style.display = 'none';
+        btnVerificar.disabled = false;
+
+        if (response.ok) {
+          mensajeDiv.style.background = '#e8f5e9';
+          mensajeDiv.style.color = '#388e3c';
+          mensajeDiv.textContent = '✓ ' + data.message;
+          
+          // Redirigir al login después de 2 segundos
+          setTimeout(() => {
+            window.location.href = '/scah/vista_general/loginRegistrarse.html';
+          }, 2000);
+        } else {
+          mensajeDiv.style.background = '#ffebee';
+          mensajeDiv.style.color = '#d32f2f';
+          mensajeDiv.textContent = '✗ ' + (data.message || 'Error al verificar el código');
+          
+          // Limpiar inputs
+          codeInputs.forEach(input => {
+            input.value = '';
+            input.classList.remove('filled');
+          });
+          codeInputs[0].focus();
+        }
+      } catch (error) {
+        spinner.style.display = 'none';
+        btnVerificar.disabled = false;
+        mensajeDiv.style.background = '#ffebee';
+        mensajeDiv.style.color = '#d32f2f';
+        mensajeDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+      }
+    });
+
+    // Función para reenviar código (deshabilitada por seguridad)
+    async function reenviarCodigo() {
+      mensajeDiv.style.background = '#fff3cd';
+      mensajeDiv.style.color = '#856404';
+      mensajeDiv.textContent = '⚠️ Por seguridad, no es posible reenviar el código desde esta página. Si no recibiste el correo, regresa al formulario de registro e intenta de nuevo.';
+    }
+
+    // Event listener para reenviar código
+    resendLink.addEventListener('click', reenviarCodigo);
+
+    // Deshabilitar el enlace de reenvío inmediatamente
+    resendLink.classList.add('disabled');
+    resendLink.textContent = 'Reenvío deshabilitado por seguridad';
+  </script>
+</body>
+</html>

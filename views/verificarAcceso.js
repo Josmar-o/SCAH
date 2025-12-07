@@ -1,7 +1,7 @@
 // Función para verificar acceso a vistas específicas por rol
 async function verificarAccesoVista(rolRequerido) {
   try {
-    const response = await fetch('/api/auth/verificar-sesion');
+    const response = await fetch('/scah/api/auth/verificar-sesion');
     const data = await response.json();
     
     if (!response.ok || !data.autenticado) {

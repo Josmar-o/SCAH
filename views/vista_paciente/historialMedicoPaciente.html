@@ -472,7 +472,7 @@
       try {
         console.log('🔍 Verificando autenticación en historial...');
         
-        const response = await fetch('/api/auth/datos-usuario', {
+        const response = await fetch('/scah/api/auth/datos-usuario', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}) // El middleware usará req.session.cedula
@@ -500,7 +500,7 @@
     // Cargar historial médico
     async function cargarHistorial() {
       try {
-        const response = await fetch('/api/auth/historial-citas', {
+        const response = await fetch('/scah/api/auth/historial-citas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}) // El middleware usará req.session.cedula
@@ -602,7 +602,7 @@
       `;
       
       try {
-        const response = await fetch('/api/auth/detalle-atencion-tiquete', {
+        const response = await fetch('/scah/api/auth/detalle-atencion-tiquete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ numero_tiquete: numeroTiquete })

@@ -408,7 +408,7 @@
     // Función para obtener la cédula del médico autenticado
     async function obtenerCedulaMedico() {
       try {
-        const response = await fetch('/api/auth/verificar-sesion');
+        const response = await fetch('/scah/api/auth/verificar-sesion');
         const data = await response.json();
         
         if (response.ok && data.rol === 'medico') {
@@ -575,7 +575,7 @@
       console.log('Cargando cupos para médico:', cedulaMedico);
       
       try {
-        const response = await fetch(`/api/cupo/por-medico?cedula_medico=${encodeURIComponent(cedulaMedico)}`);
+        const response = await fetch(`/scah/api/cupo/por-medico?cedula_medico=${encodeURIComponent(cedulaMedico)}`);
         const cuposBD = await response.json();
         
         console.log('Cupos recibidos del backend:', cuposBD);
@@ -628,7 +628,7 @@
     // Cerrar sesión
     async function cerrarSesion() {
       try {
-        await fetch('/api/auth/logout', {
+        await fetch('/scah/api/auth/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -652,7 +652,7 @@
       const ul = document.getElementById('listaProximasCitas');
       ul.innerHTML = '<li>Cargando...</li>';
       try {
-        const res = await fetch('/api/medico/proximas-citas-medico', { 
+        const res = await fetch('/scah/api/medico/proximas-citas-medico', { 
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' } 
         });
@@ -691,7 +691,7 @@
       ul.innerHTML = '<li>Cargando citas del día...</li>';
       
       try {
-        const res = await fetch('/api/medico/citas-por-fecha', { 
+        const res = await fetch('/scah/api/medico/citas-por-fecha', { 
           method: 'POST', 
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fecha: fechaSeleccionada })

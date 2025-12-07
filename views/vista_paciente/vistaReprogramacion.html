@@ -216,7 +216,7 @@
     // Cargar citas del paciente al cargar la página
     document.addEventListener('DOMContentLoaded', async () => {
       // Verificar autenticación
-      const res = await fetch('/api/auth/citas-paciente', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+      const res = await fetch('/scah/api/auth/citas-paciente', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
       if (res.status === 401) {
         window.location.href = '../vista_general/loginRegistrarse.html';
         return;
@@ -272,7 +272,7 @@
       const medico = cita.cedula_medico;
 
       // Obtener todos los cupos futuros disponibles del médico
-      const res = await fetch(`/api/cupo/todos?cedula_medico=${encodeURIComponent(medico)}`);
+      const res = await fetch(`/scah/api/cupo/todos?cedula_medico=${encodeURIComponent(medico)}`);
       const cupos = await res.json();
 
       // Filtrar solo cupos de fechas estrictamente futuras y disponibles
@@ -329,7 +329,7 @@
         console.log('ID Cita:', idCita);
         console.log('================================');
         
-        const res = await fetch('/api/reagendar/reagendar-cita', {
+        const res = await fetch('/scah/api/reagendar/reagendar-cita', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id_cita: idCita, nueva_fecha, nueva_hora: hora_final, motivo })
@@ -342,7 +342,7 @@
           alert(data.message || 'Error al reprogramar la cita.');
         }
       } else if (accion === 'cancelar') {
-        const res = await fetch('/api/reagendar/cancelar-cita', {
+        const res = await fetch('/scah/api/reagendar/cancelar-cita', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id_cita: idCita, motivo })

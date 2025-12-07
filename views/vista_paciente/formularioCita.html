@@ -666,7 +666,7 @@
     // Verificar autenticación al cargar la página
     async function verificarAutenticacion() {
       try {
-        const response = await fetch('/api/auth/datos-usuario', {
+        const response = await fetch('/scah/api/auth/datos-usuario', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
@@ -816,7 +816,7 @@
 
       especialidadSelect.innerHTML = '<option value="">Cargando especialidades...</option>';
       try {
-        const res = await fetch('/api/medico/especialidades');
+        const res = await fetch('/scah/api/medico/especialidades');
         const especialidades = await res.json();
         especialidadSelect.innerHTML = '<option value="">Seleccione una especialidad</option>';
         especialidades.forEach(e => {
@@ -849,7 +849,7 @@
       statusElement.innerHTML = '<span class="loading">🔍 Buscando médicos disponibles...</span>';
       
       try {
-        const res = await fetch(`/api/medico/por-especialidad?especialidad=${encodeURIComponent(esp)}`);
+        const res = await fetch(`/scah/api/medico/por-especialidad?especialidad=${encodeURIComponent(esp)}`);
         const medicos = await res.json();
         
         if (!medicos.length) {
@@ -890,8 +890,16 @@
       statusElement.innerHTML = '<span class="loading">🔍 Cargando fechas disponibles...</span>';
       
       try {
-        const res = await fetch(`/api/cupo/fechas-disponibles?cedula_medico=${encodeURIComponent(medico)}`);
+        console.log('Solicitando fechas para médico:', medico);
+        const res = await fetch(`/scah/api/cupo/fechas-disponibles?cedula_medico=${encodeURIComponent(medico)}`);
+        console.log('Respuesta del servidor - Status:', res.status);
+        
+        if (!res.ok) {
+          throw new Error(`Error HTTP: ${res.status}`);
+        }
+        
         const fechas = await res.json();
+        console.log('Fechas recibidas:', fechas);
         
         if (!fechas.length) {
           fechaSelect.innerHTML = '<option value="">No hay fechas disponibles</option>';
@@ -926,7 +934,7 @@
             // Usar solo la parte de la fecha (YYYY-MM-DD)
             const fechaISO = fechaObj.toISOString().split('T')[0];
             fechaSelect.innerHTML += `<option value="${fechaISO}">${fechaFormateada}</option>`;
-          });
+          }); 
           
           statusElement.innerHTML = `<span class="success">✅ ${fechasFuturas.length} fecha(s) disponible(s)</span>`;
         }
@@ -964,7 +972,7 @@
       
       try {
         console.log('Solicitando horas para fecha:', fecha, 'médico:', medico);
-        const res = await fetch(`/api/cupo/horas-disponibles?fecha=${encodeURIComponent(fecha)}&cedula_medico=${encodeURIComponent(medico)}`);
+        const res = await fetch(`/scah/api/cupo/horas-disponibles?fecha=${encodeURIComponent(fecha)}&cedula_medico=${encodeURIComponent(medico)}`);
         const horas = await res.json();
         
         console.log('Horas recibidas del backend:', horas);
@@ -1129,7 +1137,7 @@
         const numero_tiquete = Math.random().toString(36).substr(2, 9).toUpperCase();
 
         // Enviar datos al backend
-        const response = await fetch('/api/cita/crear-cita', {
+        const response = await fetch('/scah/api/cita/crear-cita', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ fecha_cita, hora_cita, cedula_medico, estado, numero_tiquete })

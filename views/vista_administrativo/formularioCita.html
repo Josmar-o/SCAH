@@ -328,7 +328,7 @@
     // Verificar autenticación al cargar la página
     async function verificarAutenticacion() {
       try {
-        const response = await fetch('/api/auth/datos-usuario', {
+        const response = await fetch('/scah/api/auth/datos-usuario', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({})
@@ -377,7 +377,7 @@
       mostrarFeedback('loading', 'Verificando paciente...');
       
       try {
-        const response = await fetch('/api/auth/verificar-paciente-cedula', {
+        const response = await fetch('/scah/api/auth/verificar-paciente-cedula', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cedula })
@@ -458,7 +458,7 @@
       await verificarAutenticacion();
 
       especialidadSelect.innerHTML = '<option value="">Cargando especialidades...</option>';
-      const res = await fetch('/api/medico/especialidades');
+      const res = await fetch('/scah/api/medico/especialidades');
       const especialidades = await res.json();
       especialidadSelect.innerHTML = '<option value="">Seleccione una especialidad</option>';
       especialidades.forEach(e => {
@@ -480,7 +480,7 @@
       }
       medicoSelect.disabled = false;
       medicoSelect.innerHTML = '<option value="">Cargando médicos...</option>';
-      const res = await fetch(`/api/cupo/medicos-disponibles?fecha=${encodeURIComponent(fecha)}&especialidad=${encodeURIComponent(esp)}`);
+      const res = await fetch(`/scah/api/cupo/medicos-disponibles?fecha=${encodeURIComponent(fecha)}&especialidad=${encodeURIComponent(esp)}`);
       const medicos = await res.json();
       if (!medicos.length) {
         medicoSelect.innerHTML = '<option value="">No hay médicos disponibles</option>';
@@ -508,7 +508,7 @@
       }
       horaSelect.disabled = false;
       horaSelect.innerHTML = '<option value="">Cargando horas...</option>';
-      const res = await fetch(`/api/cupo/horas-disponibles?fecha=${encodeURIComponent(fecha)}&cedula_medico=${encodeURIComponent(medico)}`);
+      const res = await fetch(`/scah/api/cupo/horas-disponibles?fecha=${encodeURIComponent(fecha)}&cedula_medico=${encodeURIComponent(medico)}`);
       const horas = await res.json();
       if (!horas.length) {
         horaSelect.innerHTML = '<option value="">No hay horas disponibles</option>';
@@ -583,7 +583,7 @@
           numero_tiquete 
         });
 
-        const response = await fetch('/api/cita/crear-cita-admin', {
+        const response = await fetch('/scah/api/cita/crear-cita-admin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
