@@ -410,7 +410,7 @@ exports.forgotPassword = (req, res, connection) => {
                 }
 
                 // 3. Enviar correo con el enlace de recuperación
-                const resetUrl = `http://localhost:3000/scah/vista_general/reset-password.html?token=${token}`;
+                const resetUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/scah/vista_general/reset-password.html?token=${token}`;
                 // Configuracion del transportador de nodemailer
                 const transporter = nodemailer.createTransport({
                     service: 'gmail',
