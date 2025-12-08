@@ -121,8 +121,8 @@ VALUES
 
 INSERT INTO usuarios (cedula, primer_nombre, primer_apellido, correo, contrasena, rol)
 VALUES
-('7-7777-777', 'Ricardo', 'Díaz', 'ricardo.diaz@correo.com', 'contrasena123', 'medico'),
-('8-8888-888', 'María', 'González', 'maria.gonzalez@correo.com', 'contrasena123', 'medico');
+('7-7777-777', 'Ricardo', 'Díaz', 'ricardo.diaz@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('8-8888-888', 'María', 'González', 'maria.gonzalez@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico');
 
 
 --administrativo
@@ -133,7 +133,7 @@ VALUES
 -- Contraseña: contrasena123 (reemplaza el hash por el generado con bcrypt)
 INSERT INTO usuarios (cedula, primer_nombre, primer_apellido, correo, contrasena, rol)
 VALUES
-('1-1111-111', 'Admin', 'Principal', 'admin@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'administrativo');
+('1-1111-111', 'Admin', 'Principal', 'admin@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'administrativo');
 
 -- Médicos adicionales por especialidad
 INSERT INTO Medico (cedula, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, fecha_nacimiento, telefono, correo, especialidad)
@@ -176,24 +176,24 @@ VALUES
 -- Nota: Ejecutar primero: node -e "require('bcrypt').hash('contrasena123', 10).then(console.log)" para generar el hash
 INSERT INTO usuarios (cedula, primer_nombre, primer_apellido, correo, contrasena, rol)
 VALUES
-('2-2222-222', 'Carlos', 'Mendoza', 'carlos.mendoza@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('3-3333-333', 'Patricia', 'Torres', 'patricia.torres@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('4-4444-444', 'Fernando', 'Castillo', 'fernando.castillo@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('5-5555-555', 'Sofía', 'Herrera', 'sofia.herrera@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('10-1010-101', 'Miguel', 'Vargas', 'miguel.vargas@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('11-1111-111', 'Andrea', 'Jiménez', 'andrea.jimenez@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('12-1212-121', 'Roberto', 'Gutiérrez', 'roberto.gutierrez@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('13-1313-131', 'Carmen', 'Vásquez', 'carmen.vasquez@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('14-1414-141', 'Alejandro', 'Rojas', 'alejandro.rojas@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('15-1515-151', 'Valeria', 'Paredes', 'valeria.paredes@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('16-1616-161', 'Diego', 'Flores', 'diego.flores@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('17-1717-171', 'Mónica', 'Ríos', 'monica.rios@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('18-1818-181', 'Javier', 'Silva', 'javier.silva@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('19-1919-191', 'Lucía', 'Morales', 'lucia.morales@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('20-2020-202', 'Andrés', 'Córdoba', 'andres.cordoba@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico');
+('2-2222-222', 'Carlos', 'Mendoza', 'carlos.mendoza@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('3-3333-333', 'Patricia', 'Torres', 'patricia.torres@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('4-4444-444', 'Fernando', 'Castillo', 'fernando.castillo@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('5-5555-555', 'Sofía', 'Herrera', 'sofia.herrera@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('10-1010-101', 'Miguel', 'Vargas', 'miguel.vargas@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('11-1111-111', 'Andrea', 'Jiménez', 'andrea.jimenez@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('12-1212-121', 'Roberto', 'Gutiérrez', 'roberto.gutierrez@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('13-1313-131', 'Carmen', 'Vásquez', 'carmen.vasquez@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('14-1414-141', 'Alejandro', 'Rojas', 'alejandro.rojas@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('15-1515-151', 'Valeria', 'Paredes', 'valeria.paredes@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('16-1616-161', 'Diego', 'Flores', 'diego.flores@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('17-1717-171', 'Mónica', 'Ríos', 'monica.rios@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('18-1818-181', 'Javier', 'Silva', 'javier.silva@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('19-1919-191', 'Lucía', 'Morales', 'lucia.morales@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('20-2020-202', 'Andrés', 'Córdoba', 'andres.cordoba@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico');
 
 -- También actualizar los médicos existentes que no tienen usuario
 INSERT INTO usuarios (cedula, primer_nombre, primer_apellido, correo, contrasena, rol)
 VALUES
-('9-9999-999', 'Luis', 'Ramírez', 'luis.ramirez@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico'),
-('6-6666-666', 'Ana', 'Morales', 'ana.morales@correo.com', '$2b$10$bUqP35cfAtz7Q4Bjw3pRIe5z1UqOBBvQf0ptNuJdkfucNjOZvFXMi', 'medico');
+('9-9999-999', 'Luis', 'Ramírez', 'luis.ramirez@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico'),
+('6-6666-666', 'Ana', 'Morales', 'ana.morales@correo.com', '$2b$10$lhahsKZGGuWk9bKRrH3pv.B7tqB9v3qROInZ9UjRl7LVcIZdsQjb.', 'medico');

@@ -12,11 +12,36 @@ const cupoRoutes = require('./routes/cupoRoutes');
 const reagendarRoutes = require('./routes/reagendarRoutes');
 const usuariosRoute = require('./routes/usuariosRoute');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const path = require('path'); // Módulo nativo, no instalar
 const requireViewAccess = require('./middlewares/requireViewAccess');
 
+const connection = mysql2.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD
+});
+
+// Configurar MySQL Session Store
+const sessionStore = new MySQLStore({
+    clearExpired: true,
+    checkExpirationInterval: 900000, // 15 minutos
+    expiration: 86400000, // 24 horas
+    createDatabaseTable: true,
+    schema: {
+        tableName: 'sessions',
+        columnNames: {
+            session_id: 'session_id',
+            expires: 'expires',
+            data: 'data'
+        }
+    }
+}, connection);
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'tu_clave_secreta', // Usar variable de entorno
+  store: sessionStore, // Usar MySQL para almacenar sesiones
   resave: false,
   saveUninitialized: false,
   cookie: { 
@@ -50,13 +75,6 @@ app.use('/scah', (req, res, next) => {
 // Servir archivos estáticos desde la carpeta "views" con prefijo /scah
 app.use('/scah/views', express.static('views'));
 app.use('/scah', express.static('views'));
-
-const connection = mysql2.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD
-});
 
 connection.connect((err) => {
     if (err) {

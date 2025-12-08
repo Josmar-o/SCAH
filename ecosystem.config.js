@@ -3,7 +3,7 @@ module.exports = {
   apps: [{
     name: 'scah-app',
     script: './app.js',
-    instances: 2, // Número de instancias (usar 'max' para usar todos los cores)
+    instances: 2, // Múltiples instancias ahora funcionarán con MySQL session store
     exec_mode: 'cluster', // Modo cluster para alta disponibilidad
     env: {
       NODE_ENV: 'development',
